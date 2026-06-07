@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Cargo Egypt - شحن داخلي</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+    const C = {
+      bg: "#070E1A", navy: "#0A1628", navyMid: "#0D1F3C", navyLight: "#1A3357",
+      teal: "#00C2CB", tealDark: "#009BA3", gold: "#F5A623", white: "#EEF4FF",
+      muted: "#7A99BB", danger: "#FF5252", success: "#00E676",
+      card: "rgba(255,255,255,0.035)", cardHover: "rgba(255,255,255,0.06)",
+      border: "rgba(0,194,203,0.15)", borderMuted: "rgba(255,255,255,0.08)",
+    };
+
+    const DB = {
+      getUsers() { try { return JSON.parse(localStorage.getItem("scs_users") || "{}"); } catch { return {}; } },
+      saveUsers(u) { localStorage.setItem("scs_users", JSON.stringify(u)); },
+      getSession() { try { return JSON.parse(localStorage.getItem("scs_session") || "null"); } catch { return null; } },
+      saveSession(u) { localStorage.setItem("scs_session", JSON.stringify(u)); },
+      clearSession() { localStorage.removeItem("scs_session"); },
+      getAllShipments() { try { return JSON.parse(localStorage.getItem("scs_all_shipments") || "[]"); } catch { return []; } },
+      saveAllShipments(s) { localStorage.setItem("scs_all_shipments", JSON.stringify(s)); }
+    };
+
+    const genId = () => "EG" + Date.now().toString().slice(-6);
+    const nowStr = () => new Date().toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" });
+
+    const CARRIERS = [
+      { id: "bosta", name: "بوسطة - Bosta", logo: "⚡", base: 45, days: "24-48 ساعة", email: "bosta@cargo.com" },
+      { id: "aramex_eg", name: "أرامكس مصر", logo: "📦", base: 60, days: "1-3 أيام", email: "aramex@cargo.com" },
+      { id: "mashaweer", name: "مشاوير سريعة", logo: "🛵", base: 70, days: "نفس اليوم", email: "mashaweer@cargo.com" },
+      { id: "jt_eg", name: "جي أند تي إكسبريس", logo: "🔴", base: 40, days: "2-4 أيام", email: "jt@cargo.com" },
+      { id: "roznama", name: "روزنامة للشحن", logo: "🚛", base: 50, days: "2-3 أيام", email: "roznama@cargo.com" }
+    ];
+
+    const GOVERNORATES = ["القاهرة (Cairo)", "الجيزة (Giza)", "الإسكندرية (Alexandria)", "القليوبية", "المنوفية", "الغربية", "الدقهلية", "الشرقية", "البحيرة", "دمياط", "بورسعيد", "الإسماعيلية", "السويس", "الفيوم", "بني سويف", "المنيا", "أسيوط", "سوهاج", "قنا", "الأقصر", "أسوان", "البحر الأحمر"];
+    const CARGO_TYPES = ["طرد عادي", "ملابس وأزياء", "إلكترونيات", "مستندات وأوراق", "أثاث وبضائع كبيرة", "أغذية ومأكولات", "منتجات قابلة للكسر"];
+    const STATUS_STEPS = ["تم استلام الطلب", "جاري تجهيز الشحنة", "تم التسليم لشركة الشحن", "الشحنة في الطريق للمحافظة", "جاري التوصيل للمندوب", "تم التوصيل بنجاح"];
+
+    const css = `
+      @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{background:#070E1A;font-family:'Cairo',sans-serif;color:#EEF4FF;direction:rtl;text-align:right}
+      input,select,textarea,button{font-family:'Cairo',sans-serif}
+      .fade-up{animation:fadeUp .4s ease both}
+      @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    `;
+
+    function Btn({ children, onClick, variant="primary", full, disabled, style, icon }) {
+      const [hov, setHov] = React.useState(false);
+      const variants = {
+        primary:{background:hov?C.tealDark:C.teal,color:C.navy},
+        secondary:{background:hov?"rgba(0,194,203,.12)":"rgba(0,194,203,.06)",color:C.teal,border:`1px solid ${C.border}`},
+        ghost:{background:hov?"rgba(255,255,255,.07)":"transparent",color:C.muted,border:`1px solid ${C.borderMuted}`},
+        danger:{background:hov?"#cc4141":C.danger,color:"#fff"}
+      };
+      return (
+        <button onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)} onClick={disabled?undefined:onClick}
+          style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,cursor:disabled?"not-allowed":"pointer",opacity:disabled?.5:1,transition:"all .2s",fontWeight:700,border:"none",borderRadius:10,padding:"10px 20px",fontSize:14,width:full?"100%":undefined,...variants[variant],...style}}>
+          {icon&&<span>{icon}</span>}{children}
+        </button>
+      );
+    }
+
+    function Input({ label, type="text", value, onChange, placeholder, required, options, rows }) {
+      const s = {width:"100%",background:"rgba(255,255,255,0.05)",border:`1px solid ${C.borderMuted}`,borderRadius:10,padding:"11px 14px",color:C.white,fontSize:14,outline:"none",textAlign:"right",direction:"rtl"};
+      return (
+        <div style={{display:"flex",flexDirection:"column",gap:6,width:"100%"}}>
+          {label&&<label style={{fontSize:13,color:C.muted,fontWeight:600}}>{label}{required&&<span style={{color:C.teal}}> *</span>}</label>}
+          {type==="select"?<select value={value} onChange={e=>onChange(e.target.value)} style={{...s,cursor:"pointer"}}><option value="">— اختر —</option>{options.map(o=><option key={o} value={o} style={{background:C.navyMid}}>{o}</option>)}</select>
+          :type==="textarea"?<textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={rows||3} style={s}/>
+          :<input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={s}/>}
+        </div>
+      );
+    }
+
+    function Card({ children, style, onClick }) {
+      return <div onClick={onClick} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:20,transition:"all .2s",cursor:onClick?"pointer":undefined,...style}}>{children}</div>;
+    }
+
+    function Badge({ children, color=C.teal }) {
+      return <span style={{background:`${color}22`,color,border:`1px solid ${color}44`,padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700}}>{children}</span>;
+    }
+
+    function AuthScreen({ onLogin }) {
+      const [mode, setMode] = React.useState("login");
+      const [form, setForm] = React.useState({ name: "", email: "", password: "", isCarrier: false });
+
+      function handleSubmit() {
+        if (!form.email.includes("@")) return;
+        
+        let userType = "client";
+        let carrierName = "";
+        
+        const carrierMatch = CARRIERS.find(c => c.email.toLowerCase() === form.email.toLowerCase());
+        if (carrierMatch || form.isCarrier) {
+          userType = "carrier";
+          carrierName = carrierMatch ? carrierMatch.name : "شركة شحن شريكة";
+        }
+
+        const session = {
+          name: form.name || (userType === "carrier" ? carrierName : "عميل ذكي"),
+          email: form.email,
+          role: userType,
+          carrierId: carrierMatch ? carrierMatch.id : null
+        };
+        DB.saveSession(session);
+        onLogin(session);
+      }
+
+      return (
+        <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20,background:C.bg}}>
+          <div className="fade-up" style={{width:"100%",maxWidth:400,background:C.navyMid,padding:30,borderRadius:20,border:`1px solid ${C.border}`}}>
+            <div style={{textAlign:"center",marginBottom:24}}>
+              <span style={{fontSize:40}}>配送</span>
+              <h2 style={{fontWeight:800,marginTop:10}}>شحن داخلي ذكي</h2>
+              <p style={{color:C.muted,fontSize:13}}>منصة ربط التجار بشركات الشحن المحلية في مصر</p>
+            </div>
+
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              {mode === "register" && <Input label="الاسم بالكامل" value={form.name} onChange={v=>setForm(p=>({...p,name:v}))} placeholder="محمد أحمد"/>}
+              <Input label="البريد الإلكتروني" type="email" value={form.email} onChange={v=>setForm(p=>({...p,email:v}))} placeholder="example@mail.com"/>
+              <Input label="كلمة المرور" type="password" value={form.password} onChange={v=>setForm(p=>({...p,password:v}))} placeholder="******"/>
+              
+              <label style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:C.muted,cursor:"pointer",marginTop:4}}>
+                <input type="checkbox" checked={form.isCarrier} onChange={e=>setForm(p=>({...p,isCarrier:e.target.checked}))} style={{accentColor:C.teal}} />
+                الدخول كحساب (شركة شحن / مندوب)
+              </label>
+
+              <div style={{background:"rgba(0,194,203,.05)",padding:10,borderRadius:8,fontSize:12,color:C.muted,lineHeight:1.5}}>
+                💡 **للتجربة كشركة شحن:** سجل بالبريد الإلكتروني `bosta@cargo.com` للدخول مباشرة للوحة إدارة شحنات بوسطة.
+              </div>
+
+              <Btn variant="primary" full onClick={handleSubmit}>{mode === "login" ? "تسجيل الدخول" : "إنشاء حساب جديد"}</Btn>
+              
+              <button onClick={()=>setMode(mode==="login"?"register":"login")} style={{background:"none",border:"none",color:C.teal,cursor:"pointer",fontSize:13,marginTop:10,fontWeight:600}}>
+                {mode === "login" ? "ليس لديك حساب؟ سجل الآن كتاجر" : "لديك حساب بالفعل؟ سجل دخول"}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function CarrierDashboard({ user, onLogout }) {
+      const [shipments, setShipments] = React.useState([]);
+      const [selectedShipment, setSelectedShipment] = React.useState(null);
+      const [pickupNotes, setPickupNotes] = React.useState("");
+      const [deliveryDetails, setDeliveryDetails] = React.useState("");
+
+      React.useEffect(() => {
+        const all = DB.getAllShipments();
+        const filtered = all.filter(s => s.carrierEmail === user.email || user.email === "bosta@cargo.com" || s.carrierId === user.carrierId);
+        setShipments(filtered);
+      }, [user]);
+
+      function updateStatus(shipmentId, stepIndex) {
+        const all = DB.getAllShipments();
+        const updated = all.map(s => {
+          if (s.id === shipmentId) {
+            const history = s.history || [];
+            history.push({ status: STATUS_STEPS[stepIndex], time: nowStr(), loc: "مخازن الشركة" });
+            return { 
+              ...s, 
+              statusStep: stepIndex, 
+              status: STATUS_STEPS[stepIndex],
+              history,
+              pickupNotes: pickupNotes || s.pickupNotes,
+              deliveryDetails: deliveryDetails || s.deliveryDetails
+            };
+          }
+          return s;
+        });
+        DB.saveAllShipments(updated);
+        setShipments(updated.filter(s => s.carrierEmail === user.email || user.email === "bosta@cargo.com" || s.carrierId === user.carrierId));
+        setSelectedShipment(updated.find(s => s.id === shipmentId));
+        alert("تم تحديث حالة وتفاصيل الشحنة بنجاح!");
+      }
+
+      return (
+        <div style={{padding:20,maxWidth:900,margin:"0 auto"}} className="fade-up">
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:30,background:C.navyMid,padding:20,borderRadius:16,border:`1px solid ${C.border}`}}>
+            <div>
+              <span style={{fontSize:12,color:C.teal,fontWeight:700}}>بوابة شركات الشحن الداخلية 🔒</span>
+              <h2 style={{fontWeight:800}}>{user.name}</h2>
+              <p style={{fontSize:13,color:C.muted}}>مرحباً بك! يمكنك إدارة طلبات الاستلام وتحديث تفاصيل التوصيل للعملاء.</p>
+            </div>
+            <Btn variant="ghost" size="sm" onClick={onLogout}>تسجيل خروج</Btn>
+          </div>
+
+          <h3 style={{fontWeight:700,marginBottom:16}}>📦 الطلبات المسندة إليكم حالياً ({shipments.length})</h3>
+
+          <div style={{display:"grid",gridTemplateColumns:selectedShipment?"1fr 1fr":"1fr",gap:20}}>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {shipments.length === 0 ? (
+                <Card style={{textAlign:"center",color:C.muted,padding:40}}>لا توجد طلبات شحن مسندة إليكم حالياً.</Card>
+              ) : (
+                shipments.map(s => (
+                  <Card key={s.id} onClick={() => { setSelectedShipment(s); setPickupNotes(s.pickupNotes || ""); setDeliveryDetails(s.deliveryDetails || ""); }} style={{border:selectedShipment?.id===s.id?`2px solid ${C.teal}`:`1px solid ${C.border}`,cursor:"pointer"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                      <strong style={{color:C.white}}>{s.origin} ← {s.dest}</strong>
+                      <Badge color={C.gold}>{s.id}</Badge>
+                    </div>
+                    <div style={{fontSize:13,color:C.muted}}>التاجر: {s.clientName} | الهاتف: {s.clientPhone}</div>
+                    <div style={{fontSize:13,color:C.muted,marginTop:4}}>نوع البضاعة: {s.cargoType} | الوزن: {s.weight}</div>
+                    <div style={{marginTop:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{color:C.teal,fontSize:13,fontWeight:600}}>الحالة: {s.status}</span>
+                      <strong style={{color:C.gold}}>{s.price} ج.م</strong>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+
+            {selectedShipment && (
+              <div className="fade-up" style={{background:C.navyMid,padding:20,borderRadius:16,border:`1px solid ${C.teal}`,display:"flex",flexDirection:"column",gap:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <h4 style={{fontWeight:800,color:C.white}}>تعديل وتحديث الشحنة #{selectedShipment.id}</h4>
+                  <button onClick={()=>setSelectedShipment(null)} style={{background:"none",border:"none",color:C.danger,cursor:"pointer",fontWeight:700}}>إغلاق ✕</button>
+                </div>
+
+                <div style={{borderBottom:`1px solid ${C.borderMuted}`,paddingBottom:12,fontSize:13,color:C.muted}}>
+                  <p>📍 <strong>عنوان الراسل بالتفصيل:</strong> {selectedShipment.senderAddress || "مذكور في وصف الشحنة"}</p>
+                  <p style={{marginTop:6}}>📌 <strong>تعليمات خاصة من التاجر:</strong> {selectedShipment.instructions || "لا توجد"}</p>
+                </div>
+
+                <Input label="تفاصيل ومواعيد الاستلام من التاجر" type="textarea" value={pickupNotes} onChange={setPickupNotes} placeholder="مثال: تم الاتفاق على الاستلام غداً الساعة 2 ظهراً من فرع القاهرة." rows={2}/>
+                <Input label="تفاصيل وملاحظات التوصيل للعميل النهائي" type="textarea" value={deliveryDetails} onChange={setDeliveryDetails} placeholder="مثال: رقم المندوب 0100... جاري التواصل مع المستلم للتسليم بمدينة طنطا." rows={2}/>
+
+                <div>
+                  <label style={{fontSize:13,color:C.teal,fontWeight:700,display:"block",marginBottom:8}}>تحديث حالة الشحن الفورية:</label>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    {STATUS_STEPS.map((step, idx) => (
+                      <button key={idx} onClick={() => updateStatus(selectedShipment.id, idx)}
+                        style={{padding:8,background:selectedShipment.statusStep === idx ? C.teal : "rgba(255,255,255,0.05)",color:selectedShipment.statusStep === idx ? C.navy : C.white,border:`1px solid ${C.borderMuted}`,borderRadius:8,fontSize:12,cursor:"pointer",fontWeight:600,textAlign:"center"}}>
+                        {step}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function ClientDashboard({ user, onLogout }) {
+      const [tab, setTab] = React.useState("book");
+      const [shipments, setShipments] = React.useState([]);
+      const [form, setForm] = React.useState({ origin: "", dest: "", weight: "", cargoType: "", senderAddress: "", instructions: "", carrier: null });
+      const [calculatedRates, setCalculatedRates] = React.useState([]);
+
+      React.useEffect(() => {
+        const all = DB.getAllShipments();
+        setShipments(all.filter(s => s.clientEmail === user.email));
+      }, [user]);
+
+      function getRates() {
+        if (!form.origin || !form.dest || !form.weight || !form.cargoType) {
+          alert("الرجاء ملء كافة الخانات الأساسية للطلب.");
+          return;
+        }
+        const w = parseFloat(form.weight) || 1;
+        const rates = CARRIERS.map(c => ({
+          ...c,
+          price: Math.round(c.base + (w * 5) + (Math.random() * 15))
+        }));
+        setCalculatedRates(rates);
+      }
+
+      function createOrder(carrier) {
+        const order = {
+          id: genId(),
+          clientName: user.name,
+          clientEmail: user.email,
+          clientPhone: "010XXXXXXXX",
+          origin: form.origin,
+          dest: form.dest,
+          weight: form.weight + " كجم",
+          cargoType: form.cargoType,
+          senderAddress: form.senderAddress,
+          instructions: form.instructions,
+          carrierId: carrier.id,
+          carrierName: carrier.name,
+          carrierLogo: carrier.logo,
+          carrierEmail: carrier.email,
+          price: carrier.price,
+          status: STATUS_STEPS[0],
+          statusStep: 0,
+          createdAt: nowStr(),
+          history: [{ status: STATUS_STEPS[0], time: nowStr(), loc: form.origin }]
+        };
+
+        const all = DB.getAllShipments();
+        const updated = [order, ...all];
+        DB.saveAllShipments(updated);
+        setShipments(updated.filter(s => s.clientEmail === user.email));
+        alert(`تم تسجيل الشحنة بنجاح برقم تتبع: ${order.id}. وتم إرسال تفاصيلها لشركة ${carrier.name}`);
+        setTab("list");
+        setForm({ origin: "", dest: "", weight: "", cargoType: "", senderAddress: "", instructions: "", carrier: null });
+        calculatedRates([]);
+      }
+
+      return (
+        <div style={{padding:20,maxWidth:900,margin:"0 auto"}} className="fade-up">
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24,background:C.navyMid,padding:16,borderRadius:12}}>
+            <div>
+              <h2 style={{fontWeight:800}}>{user.name} (لوحة التاجر)</h2>
+              <div style={{display:"flex",gap:10,marginTop:8}}>
+                <button onClick={()=>setTab("book")} style={{background:"none",border:"none",color:tab==="book"?C.teal:C.muted,fontWeight:700,cursor:"pointer",fontSize:14}}>➕ طلب شحن جديد</button>
+                <span style={{color:C.borderMuted}}>|</span>
+                <button onClick={()=>setTab("list")} style={{background:"none",border:"none",color:tab==="list"?C.teal:C.muted,fontWeight:700,cursor:"pointer",fontSize:14}}>📦 شحناتي الحالية ({shipments.length})</button>
+              </div>
+            </div>
+            <Btn variant="ghost" size="sm" onClick={onLogout}>تسجيل خروج</Btn>
+          </div>
+
+          {tab === "book" && (
+            <Card className="fade-up">
+              <h3 style={{fontWeight:700,marginBottom:16,color:C.teal}}>إنشاء طرد وشحن داخلي بمصر</h3>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+                <Input label="محافظة القيام (الراسل)" type="select" value={form.origin} onChange={v=>setForm(p=>({...p,origin:v}))} options={GOVERNORATES}/>
+                <Input label="محافظة الوصول (المستلم)" type="select" value={form.dest} onChange={v=>setForm(p=>({...p,dest:v}))} options={GOVERNORATES}/>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+                <Input label="الوزن الإجمالي (كيلوجرام)" type="number" value={form.weight} onChange={v=>setForm(p=>({...p,weight:v}))} placeholder="مثال: 5"/>
+                <Input label="تصنيف البضاعة" type="select" value={form.cargoType} onChange={v=>setForm(p=>({...p,cargoType:v}))} options={CARGO_TYPES}/>
+              </div>
+              <div style={{marginBottom:16}}>
+                <Input label="عنوان الاستلام بالتفصيل (عنوانك أو مخزنك)" type="text" value={form.senderAddress} onChange={v=>setForm(p=>({...p,senderAddress:v}))} placeholder="رقم المبنى، اسم الشارع، الحي، المحافظة"/>
+              </div>
+              <div style={{marginBottom:20}}>
+                <Input label="ملاحظات أو تعليمات خاصة للمندوب" type="textarea" value={form.instructions} onChange={v=>setForm(p=>({...p,instructions:v}))} placeholder="مثال: يرجى الاتصال قبل التحرك، بضاعة قابلة للكسر..."/>
+              </div>
+
+              <Btn variant="primary" full onClick={getRates}>🔍 عرض أسعار شركات الشحن الداخلية في مصر</Btn>
+
+              {calculatedRates.length > 0 && (
+                <div style={{marginTop:24}} className="fade-up">
+                  <h4 style={{fontWeight:700,marginBottom:12,color:C.white}}>الشركات المتاحة لمسارك حالياً:</h4>
+                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                    {calculatedRates.map(r => (
+                      <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${C.border}`,padding:14,borderRadius:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <div>
+                          <strong style={{fontSize:16,color:C.white}}>{r.logo} {r.name}</strong>
+                          <div style={{fontSize:12,color:C.muted,marginTop:4}}>ميعاد التوصيل المتوقع: {r.days}</div>
+                        </div>
+                        <div style={{textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
+                          <strong style={{color:C.gold,fontSize:18}}>{r.price} ج.م</strong>
+                          <Btn variant="secondary" size="sm" onClick={()=>createOrder(r)}>تأكيد وإرسال للشركة</Btn>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card>
+          )}
+
+          {tab === "list" && (
+            <div className="fade-up" style={{display:"flex",flexDirection:"column",gap:14}}>
+              {shipments.length === 0 ? (
+                <Card style={{textAlign:"center",color:C.muted,padding:40}}>لم تقم بإنشاء أي طلبات شحن بعد.</Card>
+              ) : (
+                shipments.map(s => (
+                  <Card key={s.id}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",borderBottom:`1px solid ${C.borderMuted}`,paddingBottom:10,marginBottom:10}}>
+                      <div>
+                        <strong style={{fontSize:16,color:C.white}}>{s.origin} ← {s.dest}</strong>
+                        <div style={{fontSize:12,color:C.muted,marginTop:2}}>رقم الشحنة: {s.id} | شركة الشحن: {s.carrierLogo} {s.carrierName}</div>
+                      </div>
+                      <div style={{textAlign:"left"}}>
+                        <Badge color={s.statusStep===5?C.success:C.gold}>{s.status}</Badge>
+                        <div style={{color:C.gold,fontWeight:700,marginTop:4}}>{s.price} ج.م</div>
+                      </div>
+                    </div>
+
+                    <div style={{background:"rgba(0,194,203,0.03)",padding:12,borderRadius:8,fontSize:13,color:C.white,display:"flex",flexDirection:"column",gap:6}}>
+                      <div>🔄 <strong>ملاحظات استلام البضاعة من مخزنك:</strong> <span style={{color:C.muted}}>{s.pickupNotes || "في انتظار قيام الشركة بجدولة موعد الاستلام..."}</span></div>
+                      <div style={{marginTop:4}}>📍 <strong>تحديثات التسليم للمستلم النهائي:</strong> <span style={{color:C.muted}}>{s.deliveryDetails || "سيتم التحديث فور خروج المندوب للتسليم."}</span></div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function App() {
+      const [user, setUser] = React.useState(null);
+      const [loading, setLoading] = React.useState(true);
+
+      React.useEffect(() => {
+        setUser(DB.getSession());
+        setLoading(false);
+      }, []);
+
+      if (loading) return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",color:C.teal,fontWeight:700}}>جاري تحميل منصة الشحن...</div>;
+
+      if (!user) return <AuthScreen onLogin={setUser}/>;
+
+      return (
+        <div>
+          <style>{css}</style>
+          {user.role === "carrier" ? (
+            <CarrierDashboard user={user} onLogout={()=>{setUser(null);}} />
+          ) : (
+            <ClientDashboard user={user} onLogout={()=>{setUser(null);}} />
+          )}
+        </div>
+      );
+    }
+
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+    </script>
+</body>
+</html>
