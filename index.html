@@ -1,257 +1,100 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Cargo</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <title>Smart Cargo - نظام لوجستي متكامل</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
-    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased">
-
+<body class="bg-slate-50 min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
+        const { useState } = React;
+
         function App() {
-            const [shippingType, setShippingType] = React.useState('domestic'); 
-            const [formData, setFormData] = React.useState({
-                senderName: '',
-                phone: '',
-                pickupLocation: '',
-                dropoffLocation: '',
-                length: '', 
-                width: '',  
-                height: '', 
-                notes: ''
-            });
+            const [view, setView] = useState('login'); 
+            const [role, setRole] = useState(''); // shipper, trader, importer, big-trader
+            const [shipments, setShipments] = useState([]);
 
-            const [totalVolume, setTotalVolume] = React.useState(0);
-            const [price, setPrice] = React.useState(0);
-            const [isSubmitted, setIsSubmitted] = React.useState(false);
-            const [searchTrackId, setSearchTrackId] = React.useState('');
-            const [trackingResult, setTrackingResult] = React.useState(null);
-
-            React.useEffect(() => {
-                const L = parseFloat(formData.length) || 0;
-                const W = parseFloat(formData.width) || 0;
-                const H = parseFloat(formData.height) || 0;
-
-                const volume = (L * W * H) / 1000000;
-                setTotalVolume(volume.toFixed(4));
-
-                let basePrice = 0;
-                if (volume > 0) {
-                    if (volume <= 0.05) basePrice = 150; 
-                    else if (volume <= 0.2) basePrice = 300; 
-                    else basePrice = 600; 
-
-                    if (shippingType === 'international') {
-                        basePrice = basePrice * 2.5; 
-                    }
-                }
-                setPrice(basePrice);
-            }, [formData.length, formData.width, formData.height, shippingType]);
-
-            const handleChange = (e) => {
-                const { name, value } = e.target;
-                setFormData(prev => ({ ...prev, [name]: value }));
+            const handleLogin = (selectedRole) => {
+                setRole(selectedRole);
+                setView('dashboard');
             };
 
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                setIsSubmitted(true);
-            };
+            // لوحة التحكم الرئيسية
+            const Dashboard = () => (
+                <div class="space-y-6 p-4">
+                    <div class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-6 rounded-3xl shadow-lg">
+                        <h2 class="text-2xl font-bold">مرحباً بك في Smart Cargo</h2>
+                        <p class="text-blue-200">صلاحية: {role}</p>
+                    </div>
 
-            const handleTrack = (e) => {
-                e.preventDefault();
-                if(searchTrackId.trim() === "") return;
-                setTrackingResult({
-                    id: searchTrackId,
-                    status: '📦 جاري تجهيز الشحنة في المخازن وسيتم تحريكها قريباً',
-                    date: new Date().toLocaleDateString('ar-EG')
-                });
-            };
+                    {/* إحصائيات النظام */}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                            <p class="text-slate-500 text-xs">إجمالي الشحنات</p>
+                            <h3 class="text-2xl font-bold text-blue-900">1,240</h3>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                            <p class="text-slate-500 text-xs">{role === 'shipper' ? 'عدد المناديب' : 'شحناتي النشطة'}</p>
+                            <h3 class="text-2xl font-bold text-green-600">45</h3>
+                        </div>
+                    </div>
+
+                    {/* الأزرار الرئيسية */}
+                    <div class="space-y-3">
+                        <button onClick={() => setView('add-shipment')} class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">إنشاء طلب شحن جديد</button>
+                        <button class="w-full py-4 bg-white text-blue-900 border-2 border-blue-600 rounded-2xl font-bold">تتبع الشحنات بالخريطة</button>
+                    </div>
+                </div>
+            );
+
+            // نموذج طلب الشحن التفصيلي
+            const AddShipment = () => (
+                <div class="p-4 space-y-4">
+                    <h2 class="text-xl font-bold">بيانات الشحنة المتكاملة</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input placeholder="اسم الراسل" class="p-3 border rounded-xl" />
+                        <input placeholder="رقم هاتف الراسل" class="p-3 border rounded-xl" />
+                        <input placeholder="اسم المرسل إليه" class="p-3 border rounded-xl" />
+                        <input placeholder="رقم المرسل إليه" class="p-3 border rounded-xl" />
+                    </div>
+                    <select class="w-full p-3 border rounded-xl"><option>اختر المحافظة / الوجهة</option></select>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input placeholder="نوع البضاعة" class="p-3 border rounded-xl" />
+                        <input placeholder="حالة الكرتونة" class="p-3 border rounded-xl" />
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input placeholder="الطول" class="p-3 border rounded-xl" />
+                        <input placeholder="العرض" class="p-3 border rounded-xl" />
+                        <input placeholder="الارتفاع" class="p-3 border rounded-xl" />
+                    </div>
+                    <button onClick={() => setView('dashboard')} class="w-full py-4 bg-green-600 text-white rounded-2xl font-bold">تأكيد إرسال الطلب</button>
+                </div>
+            );
 
             return (
-                <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col justify-between border-x border-slate-200">
-                    {/* هيدر احترافي لشركة شحن عالمية باسم Smart Cargo فقط */}
-                    <header class="bg-gradient-to-br from-blue-700 to-indigo-900 text-white pt-8 pb-6 px-5 rounded-b-[2rem] shadow-xl relative overflow-hidden">
-                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-orange-500 rounded-full opacity-20 blur-xl"></div>
-                        <div class="absolute -left-10 -bottom-10 w-24 h-24 bg-blue-400 rounded-full opacity-20 blur-lg"></div>
-                        
-                        <div class="flex items-center justify-center gap-2 mb-1">
-                            <span class="text-3xl">🚚</span>
-                            <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-orange-100 bg-clip-text text-transparent">Smart Cargo</h1>
-                        </div>
-                        <p class="text-blue-200 text-xs text-center font-light">الجيل الذكي للخدمات اللوجستية والنقل السريع</p>
-                    </header>
-
-                    {/* المحتوى الرئيسي */}
-                    <main class="p-5 flex-grow space-y-6">
-                        
-                        {/* مميزات الشركة */}
-                        <div class="grid grid-cols-3 gap-2 text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[10px] text-slate-600 font-medium shadow-sm">
-                            <div>⚡ توصيل سريع</div>
-                            <div class="border-x border-slate-200">🛡️ شحن آمن ومؤمن</div>
-                            <div>📞 دعم 24 ساعة</div>
-                        </div>
-
-                        {/* قسم التتبع */}
-                        <div class="bg-gradient-to-r from-slate-50 to-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-                            <div class="flex items-center gap-1.5 text-slate-700">
-                                <span class="text-base">🔍</span>
-                                <h3 class="text-sm font-bold">تتبع حالة شحنتك فوراً</h3>
+                <div class="max-w-md mx-auto">
+                    {view === 'login' && (
+                        <div class="p-6 mt-10">
+                            <h1 class="text-3xl font-black text-center mb-10 text-blue-900">Smart Cargo</h1>
+                            <div class="space-y-3">
+                                <button onClick={() => handleLogin('shipper')} class="w-full p-4 bg-blue-900 text-white rounded-2xl">شركة شحن</button>
+                                <button onClick={() => handleLogin('trader')} class="w-full p-4 bg-blue-600 text-white rounded-2xl">تاجر / تاجر جملة</button>
+                                <button onClick={() => handleLogin('importer')} class="w-full p-4 bg-indigo-600 text-white rounded-2xl">مستورد</button>
                             </div>
-                            <form onSubmit={handleTrack} class="flex gap-2">
-                                <input type="text" value={searchTrackId} onChange={(e) => setSearchTrackId(e.target.value)} class="flex-grow p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-xs shadow-inner transition-all" placeholder="أدخل رقم الشحنة (مثال: CRG-9842)" required />
-                                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 transition duration-150 cursor-pointer">تتبع</button>
-                            </form>
-
-                            {trackingResult && (
-                                <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 text-xs text-right space-y-1.5 mt-2 animate-pulse">
-                                    <p class="text-emerald-800 font-bold flex items-center gap-1">🆔 كود الشحنة: {trackingResult.id}</p>
-                                    <p class="text-slate-700 font-semibold">{trackingResult.status}</p>
-                                    <p class="text-slate-400 text-[10px]">آخر تحديث للأنظمة: {trackingResult.date}</p>
-                                </div>
-                            )}
                         </div>
-
-                        {/* نموذج الحجز والتوصيل */}
-                        {!isSubmitted ? (
-                            <form onSubmit={handleSubmit} class="space-y-5">
-                                <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                                    <span class="text-lg">📋</span>
-                                    <h2 class="text-lg font-bold text-slate-800">إنشاء بوليصة شحن جديدة</h2>
-                                </div>
-                                
-                                {/* اختيار نوع الشحن: أقسام منفصلة بجانب بعضها */}
-                                <div class="space-y-2">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">اختر اتجاه ونوع الشحنة:</label>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div onClick={() => setShippingType('domestic')} class={`p-4 rounded-2xl border-2 text-center cursor-pointer transition-all duration-200 shadow-sm ${shippingType === 'domestic' ? 'border-blue-600 bg-blue-50/50 text-blue-800 font-bold ring-4 ring-blue-600/10' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'}`}>
-                                            <div class="text-2xl mb-1">📍</div>
-                                            <div class="text-sm">شحن داخلي</div>
-                                            <span class="text-[10px] text-slate-400 block font-normal mt-0.5">داخل محافظات الجمهورية</span>
-                                        </div>
-                                        
-                                        <div onClick={() => setShippingType('international')} class={`p-4 rounded-2xl border-2 text-center cursor-pointer transition-all duration-200 shadow-sm ${shippingType === 'international' ? 'border-blue-600 bg-blue-50/50 text-blue-800 font-bold ring-4 ring-blue-600/10' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'}`}>
-                                            <div class="text-2xl mb-1">✈️</div>
-                                            <div class="text-sm">شحن دولي</div>
-                                            <span class="text-[10px] text-slate-400 block font-normal mt-0.5">توصيل لكافة دول العالم</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* بيانات العميل */}
-                                <div class="space-y-3.5">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-600 mb-1">👤 اسم الراسل بالكامل:</label>
-                                        <input type="text" name="senderName" required value={formData.senderName} onChange={handleChange} class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 text-sm shadow-inner" placeholder="اسمك رباعي للتسجيل بالبوليصة" />
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-600 mb-1">📞 رقم هاتف للتواصل:</label>
-                                        <input type="tel" name="phone" required value={formData.phone} onChange={handleChange} class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 text-left text-sm shadow-inner" placeholder="01xxxxxxxxx" />
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-600 mb-1">🛫 عنوان نقطة الاستلام بالتفصيل:</label>
-                                        <input type="text" name="pickupLocation" required value={formData.pickupLocation} onChange={handleChange} class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 text-sm shadow-inner" placeholder="المحافظة، اسم الشارع، رقم المبنى" />
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-600 mb-1">🛬 وجهة ومكان التسليم النهائي:</label>
-                                        <input type="text" name="dropoffLocation" required value={formData.dropoffLocation} onChange={handleChange} class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 text-sm shadow-inner" placeholder={shippingType === 'international' ? 'الدولة، المدينة، الرمز البريدي إن وجد' : 'المحافظة، المدينة، اسم الشارع'} />
-                                    </div>
-                                </div>
-
-                                {/* أبعاد الشحنة بالتفصيل */}
-                                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 shadow-inner space-y-3">
-                                    <span class="block text-xs font-bold text-slate-700">📐 أبعاد وقياسات الطرد الدقيقة (cm):</span>
-                                    
-                                    <div class="grid grid-cols-3 gap-2">
-                                        <div>
-                                            <label class="block text-[10px] text-slate-500 mb-1 text-center">الطول (L)</label>
-                                            <input type="number" name="length" required min="1" value={formData.length} onChange={handleChange} class="w-full p-2.5 border border-slate-200 rounded-lg bg-white text-center focus:ring-2 focus:ring-blue-500 font-semibold text-sm shadow-sm" placeholder="سم" />
-                                        </div>
-                                        <div>
-                                            <label class="block text-[10px] text-slate-500 mb-1 text-center">العرض (W)</label>
-                                            <input type="number" name="width" required min="1" value={formData.width} onChange={handleChange} class="w-full p-2.5 border border-slate-200 rounded-lg bg-white text-center focus:ring-2 focus:ring-blue-500 font-semibold text-sm shadow-sm" placeholder="سم" />
-                                        </div>
-                                        <div>
-                                            <label class="block text-[10px] text-slate-500 mb-1 text-center">الارتفاع (H)</label>
-                                            <input type="number" name="height" required min="1" value={formData.height} onChange={handleChange} class="w-full p-2.5 border border-slate-200 rounded-lg bg-white text-center focus:ring-2 focus:ring-blue-500 font-semibold text-sm shadow-sm" placeholder="سم" />
-                                        </div>
-                                    </div>
-
-                                    <div class="pt-2 text-[11px] text-slate-500 flex justify-between border-t border-slate-200/80">
-                                        <span>📦 الحجم الإجمالي للطرد الحجمي:</span>
-                                        <span class="font-bold text-slate-800 bg-slate-200/60 px-1.5 py-0.5 rounded">{totalVolume} م³</span>
-                                    </div>
-                                </div>
-
-                                {/* ملاحظات */}
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1">📝 تعليمات شحن خاصة وملاحظات للمندوب:</label>
-                                    <textarea name="notes" value={formData.notes} onChange={handleChange} rows="2" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 text-sm shadow-inner" placeholder="مثال: قابل للكسر، يرجى الاتصال قبل الوصول..."></textarea>
-                                </div>
-
-                                {/* السعر التقديري */}
-                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-200 text-center my-4 relative overflow-hidden shadow-sm">
-                                    <div class="absolute right-0 top-0 w-2 h-full bg-orange-500"></div>
-                                    <span class="text-slate-600 block text-xs font-medium">
-                                        التكلفة التقديرية الذكية للشحن ({shippingType === 'international' ? 'الدولي' : 'الداخلي'}):
-                                    </span>
-                                    <span class="text-3xl font-black text-blue-700 tracking-tight mt-1 block">{price} <span class="text-sm font-bold text-slate-500">ج.م</span></span>
-                                </div>
-
-                                {/* زر الحجز */}
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all duration-150 text-center text-base cursor-pointer transform active:scale-[0.99]">
-                                    🚀 تأكيد بوليصة الحجز والشحن الآن
-                                </button>
-                            </form>
-                        ) : (
-                            /* شاشة نجاح الحجز */
-                            <div class="text-center py-8 px-2 space-y-5 bg-emerald-50/40 rounded-3xl border border-emerald-100 p-4">
-                                <div class="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto text-2xl shadow-lg shadow-emerald-600/20">
-                                    ✓
-                                </div>
-                                <div class="space-y-1">
-                                    <h2 class="text-xl font-bold text-emerald-900">تم حجز الشحنة بنجاح!</h2>
-                                    <p class="text-slate-500 text-xs px-4 leading-relaxed">شكراً لاعتمادك على أنظمة <strong>Smart Cargo</strong> اللوجستية.</p>
-                                </div>
-                                
-                                <div class="bg-white p-4 rounded-2xl text-right text-xs space-y-2.5 border border-slate-100 shadow-sm">
-                                    <p class="flex justify-between border-b border-slate-50 pb-1.5"><strong>👤 اسم العميل الراسل:</strong> <span class="text-slate-700 font-semibold">{formData.senderName}</span></p>
-                                    <p class="flex justify-between border-b border-slate-50 pb-1.5"><strong>🌍 نوع بوليصة الشحن:</strong> <span class="text-blue-700 font-bold">{shippingType === 'international' ? 'شحن دولي عابر للحدود' : 'شحن داخلي محلي'}</span></p>
-                                    <p class="flex justify-between border-b border-slate-50 pb-1.5"><strong>📐 قياسات الطرد الحجمي:</strong> <span class="text-slate-600 font-mono font-bold">{formData.length} × {formData.width} × {formData.height} سم</span></p>
-                                    <p class="flex justify-between border-b border-slate-50 pb-1.5"><strong>📦 السعة التقديرية:</strong> <span class="text-slate-700 font-semibold">{totalVolume} متر مكعب</span></p>
-                                    <p class="flex justify-between pt-1 text-sm"><strong>💰 إجمالي المستحق والدفع:</strong> <span class="text-emerald-600 font-bold text-base">{price} ج.م</span></p>
-                                </div>
-
-                                <button onClick={() => setIsSubmitted(false)} class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-sm">
-                                    إنشاء طلب شحن جديد
-                                </button>
-                            </div>
-                        )}
-                    </main>
-
-                    {/* الفوتر المحدث باسم Smart Cargo Inc */}
-                    <footer class="text-center py-4 bg-slate-50 text-[10px] text-slate-400 border-t border-slate-100 shadow-inner">
-                        © 2026 <strong>Smart Cargo Inc.</strong> جميع الحقوق محفوظة للأنظمة اللوجستية.
-                    </footer>
+                    )}
+                    {view === 'dashboard' && <Dashboard />}
+                    {view === 'add-shipment' && <AddShipment />}
                 </div>
             );
         }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
+
