@@ -1,4 +1,3 @@
-cat > /home/claude/smart-cargo/src/App.jsx << 'ENDOFFILE'
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const C = {
@@ -9,7 +8,6 @@ const C = {
   border: "rgba(0,194,203,0.15)", borderMuted: "rgba(255,255,255,0.08)",
 };
 
-// ─── LOCAL STORAGE DB ─────────────────────────────────────────────────────────
 const DB = {
   getUsers() { try { return JSON.parse(localStorage.getItem("scs_users") || "{}"); } catch { return {}; } },
   saveUsers(u) { localStorage.setItem("scs_users", JSON.stringify(u)); },
@@ -92,7 +90,6 @@ function Spinner() {
   return <div style={{width:20,height:20,border:`2.5px solid rgba(0,194,203,.3)`,borderTop:`2.5px solid ${C.teal}`,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>;
 }
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
   const [mode,setMode]=useState("login");
   const [form,setForm]=useState({name:"",email:"",password:"",confirm:""});
@@ -191,7 +188,6 @@ function AuthScreen({ onLogin }) {
   );
 }
 
-// ─── BOOKING WIZARD ───────────────────────────────────────────────────────────
 function BookingWizard({ user, onDone, onClose }) {
   const [step,setStep]=useState(1);
   const [form,setForm]=useState({origin:"",dest:"",weight:"",dims:"",cargoType:"",description:"",pickupDate:"",carrier:null,contactName:user.name,contactPhone:"",specialInstructions:""});
@@ -338,7 +334,6 @@ function BookingWizard({ user, onDone, onClose }) {
   );
 }
 
-// ─── TRACKING ─────────────────────────────────────────────────────────────────
 function TrackingPanel({ shipment }) {
   const step=shipment.statusStep||0;
   return (
@@ -365,7 +360,6 @@ function TrackingPanel({ shipment }) {
   );
 }
 
-// ─── AI CHAT ──────────────────────────────────────────────────────────────────
 function AIChat({ user }) {
   const [msgs,setMsgs]=useState([{role:"assistant",content:`Hi ${user.name.split(" ")[0]}! 👋 I'm your Smart Cargo AI assistant. Ask me anything about shipping, routes, rates, or customs in Egypt and the Middle East!`}]);
   const [input,setInput]=useState("");
@@ -413,7 +407,6 @@ function AIChat({ user }) {
   );
 }
 
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function Dashboard({ user, onLogout }) {
   const [tab,setTab]=useState("dashboard");
   const [shipments,setShipments]=useState([]);
@@ -616,7 +609,6 @@ function Dashboard({ user, onLogout }) {
   );
 }
 
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user,setUser]=useState(null);
   const [loading,setLoading]=useState(true);
@@ -624,4 +616,3 @@ export default function App() {
   if(loading) return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
   return (<><style>{css}</style>{user?<Dashboard user={user} onLogout={()=>setUser(null)}/>:<AuthScreen onLogin={u=>setUser(u)}/>}</>);
 }
-ENDOFFILE
