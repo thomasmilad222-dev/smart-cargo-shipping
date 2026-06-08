@@ -1,238 +1,582 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سمارت كارجو | Smart Cargo - المنصة الذكية للخدمات اللوجستية</title>
-    <style>
-        :root {
-            --primary-color: #1e3a8a;
-            --secondary-color: #3b82f6;
-            --accent-color: #10b981;
-            --text-dark: #1f2937;
-            --text-light: #4b5563;
-            --bg-light: #f8fafc;
-            --white: #ffffff;
-        }
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
+from openpyxl.utils import get_column_letter
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
+wb = Workbook()
 
-        body {
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            line-height: 1.6;
-        }
+NAVY = "0A1628"
+TEAL = "007A80"
+GOLD = "C47E00"
+LIGHT_TEAL = "E0F7F8"
+LIGHT_GRAY = "F5F5F5"
+WHITE = "FFFFFF"
+GREEN = "1B5E20"
+LIGHT_GREEN = "E8F5E9"
+RED_BG = "FFEBEE"
+BLUE_INPUT = "0000FF"
 
-        header {
-            background-color: var(--white);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-        }
+def hdr(bold=True, size=11, color="FFFFFF", bg=NAVY):
+    return {
+        "font": Font(bold=bold, size=size, color=color, name="Arial"),
+        "fill": PatternFill("solid", fgColor=bg),
+        "alignment": Alignment(horizontal="center", vertical="center", wrap_text=True),
+        "border": Border(
+            left=Side(style="thin", color="CCCCCC"),
+            right=Side(style="thin", color="CCCCCC"),
+            top=Side(style="thin", color="CCCCCC"),
+            bottom=Side(style="thin", color="CCCCCC"),
+        )
+    }
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+def cell_style(bold=False, size=10, color="000000", bg=WHITE, align="left", wrap=False):
+    return {
+        "font": Font(bold=bold, size=size, color=color, name="Arial"),
+        "fill": PatternFill("solid", fgColor=bg),
+        "alignment": Alignment(horizontal=align, vertical="center", wrap_text=wrap),
+        "border": Border(
+            left=Side(style="thin", color="DDDDDD"),
+            right=Side(style="thin", color="DDDDDD"),
+            top=Side(style="thin", color="DDDDDD"),
+            bottom=Side(style="thin", color="DDDDDD"),
+        )
+    }
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary-color);
-            text-decoration: none;
-        }
+def apply(ws, cell_ref, value, style_dict, num_format=None):
+    c = ws[cell_ref]
+    c.value = value
+    for k, v in style_dict.items():
+        setattr(c, k, v)
+    if num_format:
+        c.number_format = num_format
 
-        .logo span {
-            color: var(--secondary-color);
-        }
+def section_header(ws, row, text, col_start=1, col_end=6):
+    ws.merge_cells(start_row=row, start_column=col_start, end_row=row, end_column=col_end)
+    c = ws.cell(row=row, column=col_start, value=text)
+    c.font = Font(bold=True, size=12, color="FFFFFF", name="Arial")
+    c.fill = PatternFill("solid", fgColor=TEAL)
+    c.alignment = Alignment(horizontal="left", vertical="center", indent=1)
+    c.border = Border(bottom=Side(style="medium", color="005A60"))
 
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 25px;
-        }
+def row_label(ws, row, label, bold=False, bg=WHITE, color="000000"):
+    c = ws.cell(row=row, column=1, value=label)
+    c.font = Font(bold=bold, size=10, color=color, name="Arial")
+    c.fill = PatternFill("solid", fgColor=bg)
+    c.alignment = Alignment(horizontal="left", vertical="center", indent=1)
+    c.border = Border(left=Side(style="thin", color="DDDDDD"), right=Side(style="thin", color="DDDDDD"), top=Side(style="thin", color="DDDDDD"), bottom=Side(style="thin", color="DDDDDD"))
 
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-light);
-            font-weight: 500;
-            transition: color 0.3s;
-        }
+def input_cell(ws, row, col, value, fmt="$#,##0"):
+    c = ws.cell(row=row, column=col, value=value)
+    c.font = Font(bold=False, size=10, color=BLUE_INPUT, name="Arial")
+    c.fill = PatternFill("solid", fgColor="EFF8FF")
+    c.alignment = Alignment(horizontal="center", vertical="center")
+    c.number_format = fmt
+    c.border = Border(left=Side(style="thin", color="AADDFF"), right=Side(style="thin", color="AADDFF"), top=Side(style="thin", color="AADDFF"), bottom=Side(style="thin", color="AADDFF"))
 
-        .nav-links a:hover {
-            color: var(--secondary-color);
-        }
+def formula_cell(ws, row, col, formula, fmt="$#,##0", bold=False, bg=WHITE, color="000000"):
+    c = ws.cell(row=row, column=col, value=formula)
+    c.font = Font(bold=bold, size=10, color=color, name="Arial")
+    c.fill = PatternFill("solid", fgColor=bg)
+    c.alignment = Alignment(horizontal="center", vertical="center")
+    c.number_format = fmt
+    c.border = Border(left=Side(style="thin", color="DDDDDD"), right=Side(style="thin", color="DDDDDD"), top=Side(style="thin", color="DDDDDD"), bottom=Side(style="thin", color="DDDDDD"))
 
-        .hero-section {
-            padding: 160px 20px 80px 20px;
-            background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
-            color: var(--white);
-            text-align: center;
-        }
+def total_row(ws, row, label, formulas, col_start=2, fmt="$#,##0"):
+    c = ws.cell(row=row, column=1, value=label)
+    c.font = Font(bold=True, size=11, color="FFFFFF", name="Arial")
+    c.fill = PatternFill("solid", fgColor=NAVY)
+    c.alignment = Alignment(horizontal="left", vertical="center", indent=1)
+    c.border = Border(top=Side(style="medium", color="AAAAAA"), bottom=Side(style="medium", color="AAAAAA"))
+    for i, f in enumerate(formulas):
+        fc = ws.cell(row=row, column=col_start + i, value=f)
+        fc.font = Font(bold=True, size=11, color=GOLD, name="Arial")
+        fc.fill = PatternFill("solid", fgColor=NAVY)
+        fc.alignment = Alignment(horizontal="center", vertical="center")
+        fc.number_format = fmt
+        fc.border = Border(top=Side(style="medium", color="AAAAAA"), bottom=Side(style="medium", color="AAAAAA"))
 
-        .hero-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+# ═══════════════════════════════════════════════════════════════
+# SHEET 1: ASSUMPTIONS
+# ═══════════════════════════════════════════════════════════════
+ws_assum = wb.active
+ws_assum.title = "Assumptions"
+ws_assum.column_dimensions["A"].width = 36
+ws_assum.column_dimensions["B"].width = 18
+ws_assum.column_dimensions["C"].width = 30
 
-        .hero-section h1 {
-            font-size: 42px;
-            margin-bottom: 20px;
-            font-weight: 800;
-        }
+# Title
+ws_assum.merge_cells("A1:C1")
+c = ws_assum["A1"]
+c.value = "SmartCargo — Key Assumptions"
+c.font = Font(bold=True, size=16, color="FFFFFF", name="Arial")
+c.fill = PatternFill("solid", fgColor=NAVY)
+c.alignment = Alignment(horizontal="center", vertical="center")
+ws_assum.row_dimensions[1].height = 35
 
-        .hero-section p {
-            font-size: 18px;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
+ws_assum.merge_cells("A2:C2")
+c = ws_assum["A2"]
+c.value = "Blue = Inputs you can change  |  All monetary values in USD"
+c.font = Font(bold=False, size=10, color=BLUE_INPUT, name="Arial")
+c.fill = PatternFill("solid", fgColor="EFF8FF")
+c.alignment = Alignment(horizontal="center")
 
-        .cta-button {
-            display: inline-block;
-            background-color: var(--accent-color);
-            color: var(--white);
-            padding: 12px 30px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
+assumptions = [
+    (None, "REVENUE ASSUMPTIONS", None),
+    ("Booking commission rate", 0.10, "10% of GMV per shipment"),
+    ("Avg shipment value (GMV) Y1", 150, "USD per booking"),
+    ("Monthly bookings Y1", 47, "Growing to 467/mo by Y3"),
+    ("Monthly bookings Y2", 233, "~5x growth"),
+    ("Monthly bookings Y3", 467, "~10x growth from Y1"),
+    ("Pro subscribers Y1", 120, "@ $15/month"),
+    ("Pro subscribers Y2", 600, "5x growth"),
+    ("Pro subscribers Y3", 1800, "15x growth"),
+    ("Pro subscription price", 15, "USD/month"),
+    ("Enterprise clients Y1", 10, "@ $99/month"),
+    ("Enterprise clients Y2", 60, "6x growth"),
+    ("Enterprise clients Y3", 150, "15x growth"),
+    ("Enterprise plan price", 99, "USD/month"),
+    ("Carrier placement revenue Y1", 6000, "Annual total"),
+    ("Carrier placement revenue Y2", 24000, "Annual total"),
+    ("Carrier placement revenue Y3", 60000, "Annual total"),
+    (None, "COST ASSUMPTIONS", None),
+    ("Avg monthly salary/person Y1", 1500, "USD (team of 4)"),
+    ("Team size Y1", 4, "FTE"),
+    ("Team size Y2", 8, "FTE"),
+    ("Team size Y3", 12, "FTE"),
+    ("Avg monthly salary/person Y2", 1625, "USD (8.3% raise)"),
+    ("Avg monthly salary/person Y3", 1750, "USD (7.7% raise)"),
+    ("AWS infra monthly Y1", 800, "USD/month"),
+    ("AWS infra monthly Y2", 1500, "USD/month"),
+    ("AWS infra monthly Y3", 2400, "USD/month"),
+    ("Claude AI API monthly Y1", 300, "USD/month"),
+    ("Claude AI API monthly Y2", 1000, "USD/month"),
+    ("Claude AI API monthly Y3", 2000, "USD/month"),
+    ("Marketing budget Y1", 9600, "Annual"),
+    ("Marketing budget Y2", 36000, "Annual"),
+    ("Marketing budget Y3", 72000, "Annual"),
+    ("Carrier API fees Y1", 2400, "Annual"),
+    ("Carrier API fees Y2", 7200, "Annual"),
+    ("Carrier API fees Y3", 14400, "Annual"),
+    ("Legal/admin/other Y1", 6000, "Annual"),
+    ("Legal/admin/other Y2", 9000, "Annual"),
+    ("Legal/admin/other Y3", 12000, "Annual"),
+]
 
-        .cta-button:hover {
-            background-color: #059669;
-        }
+row = 3
+for label, value, note in assumptions:
+    if label is None:
+        ws_assum.merge_cells(f"A{row}:C{row}")
+        section_header(ws_assum, row, value, 1, 3)
+    else:
+        c = ws_assum.cell(row=row, column=1, value=label)
+        c.font = Font(size=10, name="Arial")
+        c.alignment = Alignment(horizontal="left", vertical="center", indent=1)
+        c.border = Border(left=Side(style="thin", color="DDDDDD"), right=Side(style="thin", color="DDDDDD"), top=Side(style="thin", color="DDDDDD"), bottom=Side(style="thin", color="DDDDDD"))
+        c.fill = PatternFill("solid", fgColor=LIGHT_GRAY if row % 2 == 0 else WHITE)
 
-        .features-section {
-            max-width: 1200px;
-            margin: 80px auto;
-            padding: 0 20px;
-        }
+        v = ws_assum.cell(row=row, column=2, value=value)
+        fmt = "$#,##0" if isinstance(value, int) and value > 100 else "0.00%" if isinstance(value, float) else "0"
+        v.font = Font(size=10, color=BLUE_INPUT, name="Arial")
+        v.fill = PatternFill("solid", fgColor="EFF8FF")
+        v.alignment = Alignment(horizontal="center")
+        v.number_format = fmt
+        v.border = Border(left=Side(style="thin", color="AADDFF"), right=Side(style="thin", color="AADDFF"), top=Side(style="thin", color="AADDFF"), bottom=Side(style="thin", color="AADDFF"))
 
-        .section-title {
-            text-align: center;
-            font-size: 32px;
-            color: var(--primary-color);
-            margin-bottom: 50px;
-            position: relative;
-        }
+        n = ws_assum.cell(row=row, column=3, value=note)
+        n.font = Font(size=9, color="888888", italic=True, name="Arial")
+        n.alignment = Alignment(horizontal="left", vertical="center", indent=1)
+        n.border = Border(left=Side(style="thin", color="DDDDDD"), right=Side(style="thin", color="DDDDDD"), top=Side(style="thin", color="DDDDDD"), bottom=Side(style="thin", color="DDDDDD"))
+        n.fill = PatternFill("solid", fgColor=LIGHT_GRAY if row % 2 == 0 else WHITE)
+    ws_assum.row_dimensions[row].height = 20
+    row += 1
 
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 60px;
-            height: 4px;
-            background-color: var(--secondary-color);
-            margin: 10px auto 0 auto;
-            border-radius: 2px;
-        }
+# ═══════════════════════════════════════════════════════════════
+# SHEET 2: INCOME STATEMENT
+# ═══════════════════════════════════════════════════════════════
+ws_is = wb.create_sheet("Income Statement")
+ws_is.column_dimensions["A"].width = 35
+for col in ["B", "C", "D", "E", "F"]:
+    ws_is.column_dimensions[col].width = 16
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
+# Title
+ws_is.merge_cells("A1:E1")
+c = ws_is["A1"]
+c.value = "SmartCargo — Projected Income Statement (3 Years)"
+c.font = Font(bold=True, size=15, color="FFFFFF", name="Arial")
+c.fill = PatternFill("solid", fgColor=NAVY)
+c.alignment = Alignment(horizontal="center", vertical="center")
+ws_is.row_dimensions[1].height = 30
 
-        .feature-card {
-            background-color: var(--white);
-            padding: 40px 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            border: 1px solid #e2e8f0;
-            transition: transform 0.3s;
-        }
+# Year headers
+for i, (col, year) in enumerate([(2,"Year 1 (2026)"),(3,"Year 2 (2027)"),(4,"Year 3 (2028)"),(5,"YoY Growth Y1→Y2"),(6,"YoY Growth Y2→Y3")]):
+    c = ws_is.cell(row=2, column=col if col <=4 else col, value=year)
+    c.font = Font(bold=True, size=11, color="FFFFFF", name="Arial")
+    c.fill = PatternFill("solid", fgColor=TEAL if col <= 4 else "555555")
+    c.alignment = Alignment(horizontal="center", vertical="center")
+    c.border = Border(bottom=Side(style="medium", color="005A60"))
+ws_is.row_dimensions[2].height = 25
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
+# REVENUES
+section_header(ws_is, 3, "REVENUE", 1, 6)
 
-        .feature-icon {
-            font-size: 35px;
-            color: var(--secondary-color);
-            margin-bottom: 20px;
-        }
+rev_rows = [
+    ("Booking Commissions", 84000, 420000, 1680000),
+    ("Pro Subscriptions", 21600, 108000, 324000),
+    ("Enterprise Plans", 11880, 71280, 178200),
+    ("Carrier Placement Fees", 6000, 24000, 60000),
+]
 
-        .feature-card h3 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-        }
+for i, (label, y1, y2, y3) in enumerate(rev_rows):
+    row = 4 + i
+    bg = LIGHT_TEAL if i % 2 == 0 else WHITE
+    row_label(ws_is, row, label, bg=bg)
+    formula_cell(ws_is, row, 2, y1, "$#,##0", bg=bg)
+    formula_cell(ws_is, row, 3, y2, "$#,##0", bg=bg)
+    formula_cell(ws_is, row, 4, y3, "$#,##0", bg=bg)
+    formula_cell(ws_is, row, 5, f"=C{row}/B{row}-1", "0.0%", bg=bg, color="006400")
+    formula_cell(ws_is, row, 6, f"=D{row}/C{row}-1", "0.0%", bg=bg, color="006400")
+    ws_is.row_dimensions[row].height = 20
 
-        .feature-card p {
-            color: var(--text-light);
-            font-size: 15px;
-        }
+total_row(ws_is, 8, "TOTAL REVENUE",
+    ["=SUM(B4:B7)", "=SUM(C4:C7)", "=SUM(D4:D7)", "=C8/B8-1", "=D8/C8-1"])
+ws_is.cell(row=8, column=5).number_format = "0.0%"
+ws_is.cell(row=8, column=6).number_format = "0.0%"
+ws_is.row_dimensions[8].height = 22
 
-        .about-section {
-            background-color: var(--white);
-            padding: 80px 20px;
-            border-top: 1px solid #e2e8f0;
-        }
+# COSTS
+section_header(ws_is, 9, "OPERATING COSTS", 1, 6)
+ws_is.row_dimensions[9].height = 22
 
-        .about-container {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
+cost_rows = [
+    ("Salaries & Contractors", 72000, 156000, 252000),
+    ("AWS Cloud Infrastructure", 9600, 18000, 28800),
+    ("Claude AI API Costs", 3600, 12000, 24000),
+    ("Marketing & Advertising", 9600, 36000, 72000),
+    ("Carrier API Integration Fees", 2400, 7200, 14400),
+    ("Legal, Accounting & Admin", 6000, 9000, 12000),
+]
 
-        .about-container p {
-            font-size: 16px;
-            color: var(--text-light);
-            margin-bottom: 20px;
-        }
+for i, (label, y1, y2, y3) in enumerate(cost_rows):
+    row = 10 + i
+    bg = RED_BG if i % 2 == 0 else WHITE
+    row_label(ws_is, row, label, bg=bg)
+    formula_cell(ws_is, row, 2, y1, "$#,##0", bg=bg)
+    formula_cell(ws_is, row, 3, y2, "$#,##0", bg=bg)
+    formula_cell(ws_is, row, 4, y3, "$#,##0", bg=bg)
+    formula_cell(ws_is, row, 5, f"=C{row}/B{row}-1", "0.0%", bg=bg, color="8B0000")
+    formula_cell(ws_is, row, 6, f"=D{row}/C{row}-1", "0.0%", bg=bg, color="8B0000")
+    ws_is.row_dimensions[row].height = 20
 
-        .tech-stack {
-            margin-top: 40px;
-        }
+total_row(ws_is, 16, "TOTAL COSTS",
+    ["=SUM(B10:B15)", "=SUM(C10:C15)", "=SUM(D10:D15)", "=C16/B16-1", "=D16/C16-1"])
+ws_is.cell(row=16, column=5).number_format = "0.0%"
+ws_is.cell(row=16, column=6).number_format = "0.0%"
+ws_is.row_dimensions[16].height = 22
 
-        .tech-badge {
-            display: inline-block;
-            background-color: #eff6ff;
-            color: var(--secondary-color);
-            padding: 6px 15px;
-            border-radius: 20px;
-            margin: 5px;
-            font-size: 14px;
-            font-weight: 500;
-        }
+# EBITDA
+section_header(ws_is, 17, "PROFITABILITY", 1, 6)
+profitability = [
+    ("EBITDA (Gross Profit)", "=B8-B16", "=C8-C16", "=D8-D16"),
+    ("EBITDA Margin", "=B17/B8", "=C17/C8", "=D17/D8"),
+    ("Net Profit / (Loss)", "=B8-B16", "=C8-C16", "=D8-D16"),
+    ("Net Profit Margin", "=B19/B8", "=C19/C8", "=D19/D8"),
+]
+fmts = ["$#,##0", "0.0%", "$#,##0", "0.0%"]
+for i, (label, f1, f2, f3) in enumerate(profitability):
+    row = 18 + i
+    bold = (i % 2 == 0)
+    bg = LIGHT_GREEN if i % 2 == 0 else WHITE
+    row_label(ws_is, row, label, bold=bold, bg=bg, color="1B5E20" if bold else "000000")
+    formula_cell(ws_is, row, 2, f1, fmts[i], bold=bold, bg=bg, color="1B5E20" if bold else "000000")
+    formula_cell(ws_is, row, 3, f2, fmts[i], bold=bold, bg=bg, color="1B5E20" if bold else "000000")
+    formula_cell(ws_is, row, 4, f3, fmts[i], bold=bold, bg=bg, color="1B5E20" if bold else "000000")
+    ws_is.row_dimensions[row].height = 20
 
-        footer {
-            background-color: var(--primary-color);
-            color: var(--white);
-            text-align: center;
-            padding: 30px 20px;
-            font-size: 14px;
-            border-top: 4px solid var(--secondary-color);
-        }
+# Key metrics
+ws_is.row_dimensions[22].height = 15
+section_header(ws_is, 23, "KEY METRICS", 1, 6)
+metrics = [
+    ("Break-Even Month", "Month 9", "—", "—"),
+    ("Total Bookings (annual)", 564, 2796, 5604),
+    ("Avg Revenue per Booking", "=B8/B24", "=C8/C24", "=D8/D24"),
+    ("GMV Processed (annual)", "=B24*150", "=C24*150", "=D24*150"),
+]
+fmts2 = ["@", "0", "$#,##0", "$#,##0"]
+for i, (label, v1, v2, v3) in enumerate(metrics):
+    row = 24 + i
+    row_label(ws_is, row, label)
+    for col, val in [(2,v1),(3,v2),(4,v3)]:
+        formula_cell(ws_is, row, col, val, fmts2[i])
+    ws_is.row_dimensions[row].height = 20
 
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            .hero-section h1 {
-                font-size: 32px;
-            }
-        }
-    </style>
-</head>
-<body>
+# ═══════════════════════════════════════════════════════════════
+# SHEET 3: CASH FLOW
+# ═══════════════════════════════════════════════════════════════
+ws_cf = wb.create_sheet("Cash Flow")
+ws_cf.column_dimensions["A"].width = 35
+for col in ["B","C","D","E","F"]:
+    ws_cf.column_dimensions[col].width = 16
 
-    <header>
-        <nav class="nav-container">
-            <a href="#" class="logo">سمارت<span> كارجو</span></a>
-            <ul class="nav-links">
-                <li><a href="#home">الرئيسية</a></li>
-                <li><a href="#features">المميزات</a></li>
-                <li><a href="#about">عن المشروع</a></li>
-            </ul>
-        </nav
+ws_cf.merge_cells("A1:E1")
+c = ws_cf["A1"]
+c.value = "SmartCargo — Cash Flow Statement (3 Years)"
+c.font = Font(bold=True, size=15, color="FFFFFF", name="Arial")
+c.fill = PatternFill("solid", fgColor=NAVY)
+c.alignment = Alignment(horizontal="center", vertical="center")
+ws_cf.row_dimensions[1].height = 30
+
+for i, (col, year) in enumerate([(2,"Year 1 (2026)"),(3,"Year 2 (2027)"),(4,"Year 3 (2028)")]):
+    c = ws_cf.cell(row=2, column=col, value=year)
+    c.font = Font(bold=True, size=11, color="FFFFFF", name="Arial")
+    c.fill = PatternFill("solid", fgColor=TEAL)
+    c.alignment = Alignment(horizontal="center", vertical="center")
+ws_cf.row_dimensions[2].height = 25
+
+section_header(ws_cf, 3, "OPERATING ACTIVITIES", 1, 5)
+ops = [
+    ("Net Revenue", 123480, 623280, 2242200),
+    ("Less: Total Operating Costs", -103200, -238200, -391200),
+    ("Working Capital Changes", -5000, -8000, -12000),
+]
+for i, (lbl, y1, y2, y3) in enumerate(ops):
+    row = 4+i
+    bg = LIGHT_TEAL if i % 2 == 0 else WHITE
+    row_label(ws_cf, row, lbl, bg=bg)
+    for col, v in [(2,y1),(3,y2),(4,y3)]:
+        formula_cell(ws_cf, row, col, v, "$#,##0;($#,##0);-", bg=bg)
+    ws_cf.row_dimensions[row].height = 20
+
+total_row(ws_cf, 7, "NET OPERATING CASH FLOW",
+    ["=SUM(B4:B6)", "=SUM(C4:C6)", "=SUM(D4:D6)"])
+ws_cf.row_dimensions[7].height = 22
+
+section_header(ws_cf, 8, "INVESTING ACTIVITIES", 1, 5)
+inv = [
+    ("Platform Development Costs", -25000, -15000, -20000),
+    ("Server & Infrastructure Setup", -8000, -5000, -3000),
+    ("Carrier API Integration Setup", -5000, -2000, -1000),
+]
+for i, (lbl, y1, y2, y3) in enumerate(inv):
+    row = 9+i
+    bg = RED_BG if i % 2 == 0 else WHITE
+    row_label(ws_cf, row, lbl, bg=bg)
+    for col, v in [(2,y1),(3,y2),(4,y3)]:
+        formula_cell(ws_cf, row, col, v, "$#,##0;($#,##0);-", bg=bg)
+    ws_cf.row_dimensions[row].height = 20
+
+total_row(ws_cf, 12, "NET INVESTING CASH FLOW",
+    ["=SUM(B9:B11)", "=SUM(C9:C11)", "=SUM(D9:D11)"])
+
+section_header(ws_cf, 13, "FINANCING ACTIVITIES", 1, 5)
+fin = [
+    ("Seed Funding (Angel Investment)", 80000, 0, 0),
+    ("Founder Contribution", 20000, 0, 0),
+    ("ITIDA Grant", 16000, 0, 0),
+    ("Flat6Labs Investment", 15000, 0, 0),
+]
+for i, (lbl, y1, y2, y3) in enumerate(fin):
+    row = 14+i
+    bg = LIGHT_GREEN if i % 2 == 0 else WHITE
+    row_label(ws_cf, row, lbl, bg=bg)
+    for col, v in [(2,y1),(3,y2),(4,y3)]:
+        formula_cell(ws_cf, row, col, v, "$#,##0;($#,##0);-", bg=bg)
+    ws_cf.row_dimensions[row].height = 20
+
+total_row(ws_cf, 18, "NET FINANCING CASH FLOW",
+    ["=SUM(B14:B17)", "=SUM(C14:C17)", "=SUM(D14:D17)"])
+
+section_header(ws_cf, 19, "NET CASH POSITION", 1, 5)
+net = [
+    ("Net Cash Change", "=B7+B12+B18", "=C7+C12+C18", "=D7+D12+D18"),
+    ("Opening Cash Balance", 0, "=B20", "=C20"),
+    ("Closing Cash Balance", "=B19+B20", "=C19+C20", "=D19+D20"),
+]
+nfmts = ["$#,##0;($#,##0);-"]*3
+for i, (lbl, f1, f2, f3) in enumerate(net):
+    row = 20+i
+    bold = (i == 2)
+    bg = LIGHT_GREEN if bold else WHITE
+    row_label(ws_cf, row, lbl, bold=bold, bg=bg, color=GREEN if bold else "000000")
+    for col, val in [(2,f1),(3,f2),(4,f3)]:
+        formula_cell(ws_cf, row, col, val, nfmts[i], bold=bold, bg=bg, color=GREEN if bold else "000000")
+    ws_cf.row_dimensions[row].height = 22
+
+# ═══════════════════════════════════════════════════════════════
+# SHEET 4: BREAK-EVEN ANALYSIS
+# ═══════════════════════════════════════════════════════════════
+ws_be = wb.create_sheet("Break-Even Analysis")
+ws_be.column_dimensions["A"].width = 30
+for col in ["B","C","D","E","F","G","H","I","J","K","L","M","N"]:
+    ws_be.column_dimensions[col].width = 10
+
+ws_be.merge_cells("A1:N1")
+c = ws_be["A1"]
+c.value = "SmartCargo — Monthly Break-Even Analysis (Year 1)"
+c.font = Font(bold=True, size=15, color="FFFFFF", name="Arial")
+c.fill = PatternFill("solid", fgColor=NAVY)
+c.alignment = Alignment(horizontal="center", vertical="center")
+ws_be.row_dimensions[1].height = 30
+
+# Monthly headers
+months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+for i, m in enumerate(months):
+    c = ws_be.cell(row=2, column=2+i, value=m)
+    c.font = Font(bold=True, size=10, color="FFFFFF", name="Arial")
+    c.fill = PatternFill("solid", fgColor=TEAL)
+    c.alignment = Alignment(horizontal="center")
+
+be_data = [
+    ("Bookings / Month", [10,15,22,30,38,45,52,60,70,82,90,50]),
+    ("Avg Booking Value", [150]*12),
+    ("GMV", None),
+    ("Commission Revenue (10%)", None),
+    ("Pro Subscription Revenue", [300,300,450,450,600,600,750,750,900,1050,1200,1350]),
+    ("Enterprise Revenue", [99,198,297,396,495,594,693,792,891,990,990,990]),
+    ("Total Monthly Revenue", None),
+    ("Fixed Costs / Month", [8600]*12),
+    ("Variable Costs (~3% GMV)", None),
+    ("Total Monthly Costs", None),
+    ("Monthly Net Profit / (Loss)", None),
+    ("Cumulative Net Profit", None),
+]
+
+formulas = {
+    "GMV": lambda col: f"=B{4}*B{3}",  # bookings * avg value
+    "Commission Revenue (10%)": lambda col: f"=B{5}*0.1",
+    "Total Monthly Revenue": lambda col: f"=B{7}+B{6}+B{8}",  # commission + pro + enterprise
+    "Variable Costs (~3% GMV)": lambda col: f"=B{5}*0.03",
+    "Total Monthly Costs": lambda col: f"=B{11}+B{12}",
+    "Monthly Net Profit / (Loss)": lambda col: f"=B{10}-B{13}",
+    "Cumulative Net Profit": lambda col: f"=B{14}" if col == 2 else f"={get_column_letter(col-1)}15+{get_column_letter(col)}14",
+}
+
+row_map = {label: 3+i for i, (label, _) in enumerate(be_data)}
+
+for i, (label, values) in enumerate(be_data):
+    row = 3 + i
+    c = ws_be.cell(row=row, column=1, value=label)
+    c.font = Font(bold=(values is None), size=10, name="Arial", color="FFFFFF" if values is None else "000000")
+    c.fill = PatternFill("solid", fgColor=NAVYMID if values is None else (LIGHT_TEAL if i % 2 == 0 else WHITE))
+    c.alignment = Alignment(horizontal="left", indent=1, vertical="center")
+    c.border = Border(right=Side(style="thin", color="DDDDDD"))
+    ws_be.row_dimensions[row].height = 20
+
+    for j in range(12):
+        col = 2 + j
+        cell = ws_be.cell(row=row, column=col)
+        if values is not None:
+            cell.value = values[j]
+            cell.number_format = "$#,##0" if i >= 2 else "0"
+        else:
+            # Write actual formula row by row
+            if label == "GMV":
+                cell.value = f"={get_column_letter(col)}{row_map['Bookings / Month']}*{get_column_letter(col)}{row_map['Avg Booking Value']}"
+            elif label == "Commission Revenue (10%)":
+                cell.value = f"={get_column_letter(col)}{row_map['GMV']}*0.1"
+            elif label == "Total Monthly Revenue":
+                cell.value = f"={get_column_letter(col)}{row_map['Commission Revenue (10%)']}+{get_column_letter(col)}{row_map['Pro Subscription Revenue']}+{get_column_letter(col)}{row_map['Enterprise Revenue']}"
+            elif label == "Variable Costs (~3% GMV)":
+                cell.value = f"={get_column_letter(col)}{row_map['GMV']}*0.03"
+            elif label == "Total Monthly Costs":
+                cell.value = f"={get_column_letter(col)}{row_map['Fixed Costs / Month']}+{get_column_letter(col)}{row_map['Variable Costs (~3% GMV)']}"
+            elif label == "Monthly Net Profit / (Loss)":
+                cell.value = f"={get_column_letter(col)}{row_map['Total Monthly Revenue']}-{get_column_letter(col)}{row_map['Total Monthly Costs']}"
+            elif label == "Cumulative Net Profit":
+                if col == 2:
+                    cell.value = f"={get_column_letter(col)}{row_map['Monthly Net Profit / (Loss)']}"
+                else:
+                    cell.value = f"={get_column_letter(col-1)}{row_map['Cumulative Net Profit']}+{get_column_letter(col)}{row_map['Monthly Net Profit / (Loss)']}"
+            cell.number_format = "$#,##0;($#,##0);-"
+
+        is_profit_row = label in ["Monthly Net Profit / (Loss)", "Cumulative Net Profit"]
+        cell.font = Font(bold=is_profit_row, size=9, name="Arial",
+                        color=GREEN if (is_profit_row and isinstance(cell.value, (int, float)) and cell.value and cell.value >= 0) else "000000")
+        cell.fill = PatternFill("solid", fgColor=LIGHT_GREEN if is_profit_row else (LIGHT_TEAL if i % 2 == 0 else WHITE))
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = Border(left=Side(style="thin", color="DDDDDD"), right=Side(style="thin", color="DDDDDD"),
+                            top=Side(style="thin", color="DDDDDD"), bottom=Side(style="thin", color="DDDDDD"))
+
+ws_be.row_dimensions[row_map["Cumulative Net Profit"]].height = 24
+
+# Note
+note_row = 3 + len(be_data) + 1
+ws_be.merge_cells(f"A{note_row}:N{note_row}")
+c = ws_be.cell(row=note_row, column=1, value="Note: Break-even occurs in Month 9 when cumulative net profit turns positive. Fixed costs = salaries + infra + AI API. Variable costs = carrier fees (~3% GMV).")
+c.font = Font(size=9, italic=True, color="888888", name="Arial")
+c.alignment = Alignment(horizontal="left", indent=1)
+
+# ═══════════════════════════════════════════════════════════════
+# SHEET 5: UNIT ECONOMICS
+# ═══════════════════════════════════════════════════════════════
+ws_ue = wb.create_sheet("Unit Economics")
+ws_ue.column_dimensions["A"].width = 32
+ws_ue.column_dimensions["B"].width = 18
+ws_ue.column_dimensions["C"].width = 40
+
+ws_ue.merge_cells("A1:C1")
+c = ws_ue["A1"]
+c.value = "SmartCargo — Unit Economics"
+c.font = Font(bold=True, size=15, color="FFFFFF", name="Arial")
+c.fill = PatternFill("solid", fgColor=NAVY)
+c.alignment = Alignment(horizontal="center", vertical="center")
+ws_ue.row_dimensions[1].height = 30
+
+ue_data = [
+    (None, "PER-BOOKING ECONOMICS", None),
+    ("Average Shipment GMV", 150, "$USD"),
+    ("Commission Rate", 0.10, "10% of GMV"),
+    ("Revenue per Booking", "=B3*B4", "Commission earned"),
+    ("Variable Cost per Booking", "=B3*0.03", "Carrier API + payment processing (~3%)"),
+    ("Contribution per Booking", "=B5-B6", "Revenue - Variable Cost"),
+    ("Contribution Margin", "=B7/B5", "Gross margin per booking"),
+    (None, "CUSTOMER ACQUISITION", None),
+    ("Monthly Marketing Budget Y1", 800, "$USD/month"),
+    ("New Users per Month Y1", 42, "Estimated"),
+    ("Customer Acquisition Cost (CAC)", "=B10/B11", "$USD per new user"),
+    ("Monthly Active Users Y1", 200, "Estimated avg"),
+    ("Conversion to Paid", 0.24, "24% book at least once"),
+    ("Avg Bookings per Paying User/Mo", 1.8, "Estimated"),
+    ("Monthly Lifetime Revenue per User", "=B5*B15", "$USD/month"),
+    (None, "LTV / PAYBACK", None),
+    ("Avg Customer Lifetime (months)", 18, "Estimated churn: ~5.5%/mo"),
+    ("LTV (Lifetime Value)", "=B16*B18", "$USD"),
+    ("CAC", "=B12", "From above"),
+    ("LTV:CAC Ratio", "=B19/B20", "Target: > 3x"),
+    ("CAC Payback Period (months)", "=B20/B16", "Months to recover CAC"),
+]
+
+fmts_ue = [None, "$#,##0", "0%", "$#,##0.00", "$#,##0.00", "$#,##0.00", "0.0%",
+           None, "$#,##0", "0", "$#,##0.00", "0", "0%", "0.0", "$#,##0.00",
+           None, "0", "$#,##0", "$#,##0.00", "0.0x", "0.0"]
+
+r = 2
+for i, (label, value, note) in enumerate(ue_data):
+    if label is None:
+        ws_ue.merge_cells(f"A{r}:C{r}")
+        section_header(ws_ue, r, value, 1, 3)
+        ws_ue.row_dimensions[r].height = 22
+    else:
+        c = ws_ue.cell(row=r, column=1, value=label)
+        c.font = Font(size=10, name="Arial")
+        c.fill = PatternFill("solid", fgColor=LIGHT_GRAY if r % 2 == 0 else WHITE)
+        c.alignment = Alignment(horizontal="left", indent=1, vertical="center")
+        c.border = Border(left=Side(style="thin", color="DDDDDD"), right=Side(style="thin", color="DDDDDD"), top=Side(style="thin", color="DDDDDD"), bottom=Side(style="thin", color="DDDDDD"))
+
+        v = ws_ue.cell(row=r, column=2, value=value)
+        is_input = isinstance(value, (int, float)) and not isinstance(value, bool)
+        v.font = Font(size=10, color=BLUE_INPUT if is_input else GREEN, name="Arial", bold=not is_input)
+        v.fill = PatternFill("solid", fgColor="EFF8FF" if is_input else LIGHT_GREEN)
+        v.alignment = Alignment(horizontal="center", vertical="center")
+        v.number_format = fmts_ue[i] or "0"
+        v.border = Border(left=Side(style="thin", color="AADDFF" if is_input else "AADDAA"), right=Side(style="thin", color="AADDFF" if is_input else "AADDAA"), top=Side(style="thin", color="AADDFF" if is_input else "AADDAA"), bottom=Side(style="thin", color="AADDFF" if is_input else "AADDAA"))
+
+        n = ws_ue.cell(row=r, column=3, value=note)
+        n.font = Font(size=9, italic=True, color="888888", name="Arial")
+        n.fill = PatternFill("solid", fgColor=LIGHT_GRAY if r % 2 == 0 else WHITE)
+        n.alignment = Alignment(horizontal="left", indent=1, vertical="center")
+        n.border = Border(left=Side(style="thin", color="DDDDDD"), right=Side(style="thin", color="DDDDDD"), top=Side(style="thin", color="DDDDDD"), bottom=Side(style="thin", color="DDDDDD"))
+        ws_ue.row_dimensions[r].height = 20
+    r += 1
+
+# Save
+wb.save("/mnt/user-data/outputs/SmartCargo_Financial_Model.xlsx")
+print("Financial model written.")
