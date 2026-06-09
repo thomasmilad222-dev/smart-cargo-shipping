@@ -1,227 +1,1175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Cargo Shipping</title>
-    <!-- استدعاء مكتبات React و Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Smart Cargo — Intelligent Shipping Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#0B1628;--navy2:#112240;--navy3:#0D1A2E;
+  --teal:#00C9A7;--teal2:#00A88B;
+  --gold:#F5A623;--red:#FF5A5F;
+  --white:#EEF2FF;--gray:#8892A4;--gray2:#4A5568;
+  --card:#152035;--border:rgba(0,201,167,0.15);
+  --border2:rgba(255,255,255,0.08);
+  --fd:'Syne',sans-serif;--fb:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:var(--fb);min-height:100vh;overflow-x:hidden}
+/* ─── UTILS ─── */
+.hidden{display:none!important}
+.view{display:none}.view.active{display:block}
+.dash-page{display:none}.dash-page.active{display:block}
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--navy)}::-webkit-scrollbar-thumb{background:var(--gray2);border-radius:4px}
+/* ─── NAV ─── */
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(11,22,40,.97);backdrop-filter:blur(16px);position:sticky;top:0;z-index:900;border-bottom:1px solid var(--border)}
+.logo{font-family:var(--fd);font-size:22px;font-weight:800;letter-spacing:-.5px}.logo span{color:var(--teal)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{color:var(--gray);font-size:14px;font-weight:500;text-decoration:none;cursor:pointer;transition:color .2s}
+.nav-links a:hover{color:var(--teal)}
+.nav-btns{display:flex;gap:10px}
+/* ─── BUTTONS ─── */
+.btn{border:none;cursor:pointer;font-family:var(--fb);font-weight:700;border-radius:10px;transition:all .2s}
+.btn-p{background:var(--teal);color:var(--navy);padding:11px 24px;font-size:14px}.btn-p:hover{background:var(--teal2);transform:translateY(-1px)}
+.btn-o{background:transparent;color:var(--white);padding:11px 24px;font-size:14px;border:1px solid var(--border2)}.btn-o:hover{border-color:var(--teal);color:var(--teal)}
+.btn-sm{background:var(--teal);color:var(--navy);padding:7px 14px;font-size:12px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:background .2s}.btn-sm:hover{background:var(--teal2)}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--white);padding:8px 14px;font-size:13px;border:1px solid var(--border2);border-radius:8px;cursor:pointer;transition:all .2s}.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-red{background:rgba(255,90,95,.1);color:var(--red);padding:8px 14px;font-size:13px;border:none;border-radius:8px;cursor:pointer;width:100%;margin-top:12px;font-family:var(--fb);font-weight:700}
+/* ─── HERO ─── */
+.hero{min-height:88vh;display:flex;align-items:center;padding:80px 40px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 65% at 72% 50%,rgba(0,201,167,.1) 0%,transparent 70%)}
+.hero::after{content:'';position:absolute;top:10%;right:5%;width:420px;height:420px;border:1px solid rgba(0,201,167,.08);border-radius:50%;animation:pulse 6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.05);opacity:1}}
+.hero-inner{max-width:640px;position:relative;z-index:1}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(0,201,167,.1);border:1px solid var(--border);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;color:var(--teal);margin-bottom:22px;letter-spacing:.5px}
+.hero h1{font-family:var(--fd);font-size:clamp(44px,6vw,74px);font-weight:800;line-height:1.04;letter-spacing:-2px;margin-bottom:18px}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero p{font-size:17px;color:var(--gray);line-height:1.75;margin-bottom:34px;max-width:500px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:40px;margin-top:56px;flex-wrap:wrap}
+.stat{border-left:2px solid var(--teal);padding-left:16px}
+.stat-n{font-family:var(--fd);font-size:30px;font-weight:800}
+.stat-l{font-size:12px;color:var(--gray);margin-top:2px}
+/* ─── FEATURES ─── */
+.section{padding:80px 40px;max-width:1200px;margin:0 auto}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;margin-top:40px}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px;transition:border-color .2s,transform .2s}
+.feat-card:hover{border-color:var(--teal);transform:translateY(-3px)}
+.feat-icon{font-size:28px;margin-bottom:14px}
+.feat-card h3{font-size:15px;font-weight:700;margin-bottom:7px}
+.feat-card p{font-size:13px;color:var(--gray);line-height:1.65}
+.section-title{font-family:var(--fd);font-size:36px;font-weight:800;letter-spacing:-1px}
+.section-sub{color:var(--gray);font-size:16px;margin-top:8px}
+/* ─── OVERLAY / MODAL ─── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;position:relative}
+.modal.wide{max-width:560px}
+.modal h2{font-family:var(--fd);font-size:26px;font-weight:800;margin-bottom:5px}
+.modal-sub{color:var(--gray);font-size:14px;margin-bottom:26px}.modal-sub span{color:var(--teal);font-weight:600}
+.close-x{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.07);border:none;color:var(--white);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.close-x:hover{background:rgba(255,255,255,.14)}
+/* ─── FORMS ─── */
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg select,.fg textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;color:var(--white);font-size:14px;font-family:var(--fb);outline:none;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal)}
+.fg select option{background:var(--navy2)}
+.fg input[type=number]{-moz-appearance:textfield}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+.divider{height:1px;background:var(--border2);margin:18px 0}
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;margin-bottom:22px}
+.tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;border-radius:7px;cursor:pointer;color:var(--gray);transition:all .2s}
+.tab.active{background:var(--teal);color:var(--navy)}
+/* Role cards */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.role-card{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:all .2s}
+.role-card.sel{border-color:var(--teal);background:rgba(0,201,167,.08)}
+.rc-icon{font-size:28px;margin-bottom:8px}
+.rc-name{font-size:13px;font-weight:700}
+.rc-desc{font-size:11px;color:var(--gray);margin-top:3px}
+/* Upload */
+.upload-box{border:2px dashed rgba(0,201,167,.25);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;overflow:hidden}
+.upload-box:hover{border-color:var(--teal)}
+.upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:30px;margin-bottom:8px}
+.upload-box p{font-size:13px;color:var(--gray)}
+.upload-ok{font-size:12px;color:var(--teal);margin-top:5px;font-weight:600}
+/* ─── DASHBOARD LAYOUT ─── */
+.dash-layout{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb-logo{padding:20px 22px 18px;border-bottom:1px solid var(--border)}
+.sb-nav{flex:1;padding:12px 0}
+.sb-link{display:flex;align-items:center;gap:11px;padding:10px 22px;color:var(--gray);font-size:13.5px;font-weight:500;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .2s;font-family:var(--fb);border-right:2px solid transparent}
+.sb-link:hover,.sb-link.active{color:var(--white);background:rgba(0,201,167,.08);border-right-color:var(--teal)}
+.sb-icon{font-size:17px;width:20px}
+.sb-badge{background:var(--red);color:#fff;font-size:10px;padding:2px 6px;border-radius:10px;margin-left:auto}
+.sb-user{padding:18px 22px;border-top:1px solid var(--border)}
+.avatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.av-teal{background:var(--teal);color:var(--navy)}
+.av-gold{background:var(--gold);color:var(--navy)}
+.user-row{display:flex;align-items:center;gap:10px}
+.u-name{font-size:13px;font-weight:700}
+.u-role{font-size:11px;color:var(--gray)}
+.main{padding:28px 32px;overflow-y:auto;background:var(--navy)}
+.ph{margin-bottom:26px}
+.ph h2{font-family:var(--fd);font-size:26px;font-weight:800;letter-spacing:-.5px}
+.ph p{color:var(--gray);font-size:14px;margin-top:4px}
+/* ─── KPI ─── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:18px}
+.kpi-lbl{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.kpi-val{font-family:var(--fd);font-size:30px;font-weight:800}
+.kpi-sub{font-size:12px;color:var(--teal);margin-top:4px}
+.kpi.warn .kpi-val{color:var(--gold)}
+.kpi.danger .kpi-val{color:var(--red)}
+/* ─── BLOCK ─── */
+.block{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px}
+.block-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+/* ─── SHIP TYPE CARDS ─── */
+.stype-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.stype{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:22px;cursor:pointer;text-align:center;transition:all .2s}
+.stype:hover,.stype.sel{border-color:var(--teal);background:rgba(0,201,167,.07)}
+.stype-icon{font-size:40px;margin-bottom:10px}
+.stype h3{font-size:15px;font-weight:700;margin-bottom:5px}
+.stype p{font-size:12px;color:var(--gray)}
+.smethod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.smethod{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all .2s}
+.smethod:hover,.smethod.sel{border-color:var(--teal);background:rgba(0,201,167,.08)}
+.smethod-icon{font-size:26px;margin-bottom:7px}
+.smethod span{font-size:13px;font-weight:600}
+/* ─── STEP INDICATOR ─── */
+.step-bar{display:flex;margin-bottom:24px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.step-tab{flex:1;padding:11px 6px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.step-tab.active{background:var(--teal);color:var(--navy)}
+.step-tab.done{background:rgba(0,201,167,.15);color:var(--teal)}
+.step-tab.pending{background:rgba(255,255,255,.03);color:var(--gray)}
+/* ─── CARTON ROW ─── */
+.carton-row{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.carton-row-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.carton-lbl{font-size:12px;font-weight:700;color:var(--teal)}
+.btn-remove{background:rgba(255,90,95,.12);color:var(--red);border:none;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:var(--fb)}
+/* ─── TOTALS BOX ─── */
+.totals-box{background:rgba(0,201,167,.05);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:18px}
+.totals-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.totals-row:not(:last-child){border-bottom:1px solid var(--border)}
+.tot-lbl{font-size:13px;color:var(--gray)}
+.tot-val{font-family:var(--fd);font-size:18px;font-weight:800}
+/* ─── CARRIERS LIST ─── */
+.carrier-item{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.c-logo{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;background:rgba(0,201,167,.2);color:var(--teal)}
+.c-info{flex:1}
+.c-info h4{font-size:14px;font-weight:700}
+.c-info p{font-size:12px;color:var(--gray);margin-top:2px}
+.c-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
+.badge-t{background:rgba(0,201,167,.12);border:1px solid rgba(0,201,167,.2);color:var(--teal)}
+.badge-g{background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.2);color:var(--gold)}
+.badge-r{background:rgba(255,90,95,.12);border:1px solid rgba(255,90,95,.2);color:var(--red)}
+.c-price{text-align:right;flex-shrink:0}
+.c-price .price{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--teal)}
+.c-price .per{font-size:11px;color:var(--gray)}
+/* ─── CURRENCY TAG ─── */
+.currency-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.2);color:var(--gold);font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;margin-bottom:14px}
+/* ─── SUMMARY BOX ─── */
+.summary-box{background:rgba(0,201,167,.05);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;font-size:13px;line-height:1.9;color:var(--gray)}
+.summary-box strong{color:var(--teal)}
+/* ─── TRACK TIMELINE ─── */
+.timeline{position:relative;padding-left:26px;margin-top:16px}
+.timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-step{position:relative;margin-bottom:18px}
+.tl-step::before{content:'';position:absolute;left:-23px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--border)}
+.tl-step.done::before{background:var(--teal)}
+.tl-step.now::before{background:var(--gold);box-shadow:0 0 0 3px rgba(245,166,35,.25)}
+.tl-step h4{font-size:14px;font-weight:600}
+.tl-step p{font-size:12px;color:var(--gray);margin-top:2px}
+/* ─── MESSAGES ─── */
+.msg-item{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px;display:flex;gap:12px;cursor:pointer;margin-bottom:8px;transition:border-color .2s}
+.msg-item:hover{border-color:var(--teal)}
+.msg-item.unread{border-left:3px solid var(--teal)}
+.msg-av{width:38px;height:38px;border-radius:10px;background:rgba(0,201,167,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.msg-body{flex:1}
+.msg-from{font-size:13px;font-weight:700}
+.msg-text{font-size:12px;color:var(--gray);margin-top:3px}
+.msg-time{font-size:11px;color:var(--gray);flex-shrink:0}
+/* ─── COMPLAINTS ─── */
+.cmp-item{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:10px}
+.cmp-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.cmp-id{font-size:12px;color:var(--gray)}
+.status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px}
+.s-open{background:rgba(255,90,95,.15);color:var(--red)}
+.s-prog{background:rgba(245,166,35,.15);color:var(--gold)}
+.s-done{background:rgba(0,201,167,.15);color:var(--teal)}
+.cmp-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.cmp-from{font-size:12px;color:var(--gray)}
+/* ─── FLEET ─── */
+.fleet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.truck-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center}
+.truck-icon{font-size:34px;margin-bottom:8px}
+.truck-id{font-size:12px;font-weight:700}
+.truck-trips{font-family:var(--fd);font-size:26px;font-weight:800;color:var(--teal);margin:5px 0}
+.truck-lbl{font-size:11px;color:var(--gray)}
+.truck-st{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px}
+.st-on{background:rgba(0,201,167,.15);color:var(--teal)}
+.st-off{background:rgba(136,146,164,.12);color:var(--gray)}
+/* ─── BRANCH CARD ─── */
+.branch-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:15px;display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.branch-em{font-size:26px;margin-top:2px}
+.branch-info{flex:1}
+.branch-info h4{font-size:14px;font-weight:700}
+.branch-info p{font-size:12px;color:var(--gray);margin-top:3px}
+.map-link{background:var(--teal);color:var(--navy);padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap}
+.zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:7px}
+.zone-lbl{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-transform:none;letter-spacing:0}
+/* ─── NOTIFICATION ─── */
+.notif-bar{position:fixed;bottom:22px;right:22px;background:var(--teal);color:var(--navy);padding:11px 20px;border-radius:12px;font-size:14px;font-weight:700;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+.notif-bar.show{transform:translateY(0);opacity:1}
+/* ─── RESPONSIVE ─── */
+@media(max-width:800px){
+  .top-nav{padding:12px 18px}.nav-links{display:none}
+  .hero{padding:60px 18px}.section{padding:40px 18px}
+  .dash-layout{grid-template-columns:1fr}.sidebar{display:none}
+  .main{padding:18px}.row2,.row3,.row4{grid-template-columns:1fr}
+  .stype-grid{grid-template-columns:1fr}.smethod-grid{grid-template-columns:1fr 1fr}
+  .step-tab{font-size:10px;padding:9px 2px}
+}
+</style>
 </head>
 <body>
-    <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useCallback } = React;
+<!-- ══════════════════ LANDING ══════════════════ -->
+<div id="v-land" class="view active">
+<nav class="top-nav">
+  <div class="logo">Smart<span>Cargo</span><sup style="font-size:9px;color:var(--gray);font-family:var(--fb);font-weight:500;margin-left:4px">v2</sup></div>
+  <ul class="nav-links">
+    <li><a onclick="scrollTo('#features')">Services</a></li>
+    <li><a onclick="scrollTo('#features')">Carriers</a></li>
+    <li><a onclick="scrollTo('#features')">Track</a></li>
+  </ul>
+  <div class="nav-btns">
+    <button class="btn btn-o" onclick="openModal('m-login')">Sign In</button>
+    <button class="btn btn-p" onclick="openModal('m-register')">Get Started</button>
+  </div>
+</nav>
 
-        // --- الكود الخاص بك بالكامل ---
-        const C = {
-          bg: "#070E1A", navy: "#0A1628", navyMid: "#0D1F3C", navyLight: "#1A3357",
-          teal: "#00C2CB", tealDark: "#009BA3", gold: "#F5A623", white: "#EEF4FF",
-          muted: "#7A99BB", danger: "#FF5252", success: "#00E676",
-          card: "rgba(255,255,255,0.035)", cardHover: "rgba(255,255,255,0.06)",
-          border: "rgba(0,194,203,0.15)", borderMuted: "rgba(255,255,255,0.08)",
-        };
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">🌍 Egypt & MENA Logistics Platform</div>
+    <h1>Ship Smarter.<br/>Grow <em>Faster.</em></h1>
+    <p>Connect with verified carriers, compare live rates, and track every shipment across Egypt and the Middle East — from one intelligent platform.</p>
+    <div class="hero-btns">
+      <button class="btn btn-p" style="padding:14px 30px;font-size:15px" onclick="openModal('m-register')">Start Shipping →</button>
+      <button class="btn btn-o" style="padding:14px 30px;font-size:15px" onclick="openModal('m-login')">Sign In</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">200+</div><div class="stat-l">Verified Carriers</div></div>
+      <div class="stat"><div class="stat-n">18</div><div class="stat-l">Countries Covered</div></div>
+      <div class="stat"><div class="stat-n">50K+</div><div class="stat-l">Shipments Tracked</div></div>
+    </div>
+  </div>
+</section>
 
-        const DB = {
-          getUsers() { try { return JSON.parse(localStorage.getItem("scs_users") || "{}"); } catch { return {}; } },
-          saveUsers(u) { localStorage.setItem("scs_users", JSON.stringify(u)); },
-          getSession() { try { return JSON.parse(localStorage.getItem("scs_session") || "null"); } catch { return null; } },
-          saveSession(u) { localStorage.setItem("scs_session", JSON.stringify(u)); },
-          clearSession() { localStorage.removeItem("scs_session"); },
-          getShipments(email) { try { return JSON.parse(localStorage.getItem(`scs_ship_${email}`) || "[]"); } catch { return []; } },
-          saveShipments(email, s) { localStorage.setItem(`scs_ship_${email}`, JSON.stringify(s)); },
-        };
+<section class="section" id="features">
+  <div class="section-title">Everything you need to ship</div>
+  <div class="section-sub">Built for Egypt's merchants and logistics companies</div>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-icon">🤖</div><h3>Smart Carrier Matching</h3><p>Automatically matched to carriers based on your governorate, cargo type, and service zones.</p></div>
+    <div class="feat-card"><div class="feat-icon">📐</div><h3>Carton-Level Booking</h3><p>Enter dimensions, weight, and quantity for each carton group — get accurate volume and weight totals instantly.</p></div>
+    <div class="feat-card"><div class="feat-icon">🚚</div><h3>Domestic & International</h3><p>Local Egyptian delivery or global freight — air, sea, and land routes across 18+ MENA countries.</p></div>
+    <div class="feat-card"><div class="feat-icon">💱</div><h3>Local Currency Prices</h3><p>Pricing displayed in your local currency — EGP, AED, SAR, USD, and more, auto-detected.</p></div>
+    <div class="feat-card"><div class="feat-icon">📍</div><h3>Live Tracking</h3><p>Step-by-step shipment status from pickup to final delivery, with driver and location updates.</p></div>
+    <div class="feat-card"><div class="feat-icon">🏢</div><h3>Carrier Operations Portal</h3><p>Full dashboard for shipping companies — messages, complaints, fleet trips, branches, and zones.</p></div>
+  </div>
+</section>
+</div>
 
-        const genId = () => "SC" + Date.now().toString().slice(-8);
-        const nowStr = () => new Date().toLocaleString("en-EG", { dateStyle: "medium", timeStyle: "short" });
+<!-- ══════════════════ MERCHANT DASHBOARD ══════════════════ -->
+<div id="v-merchant" class="view">
+<div class="dash-layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sb-logo"><div class="logo">Smart<span>Cargo</span></div></div>
+    <nav class="sb-nav">
+      <button class="sb-link active" onclick="mPage('mp-home',this)"><span class="sb-icon">🏠</span>Overview</button>
+      <button class="sb-link" onclick="mPage('mp-ship',this)"><span class="sb-icon">📦</span>New Shipment</button>
+      <button class="sb-link" onclick="mPage('mp-carriers',this)"><span class="sb-icon">🚚</span>Find Carriers</button>
+      <button class="sb-link" onclick="mPage('mp-track',this)"><span class="sb-icon">📍</span>Track Shipment</button>
+      <button class="sb-link" onclick="mPage('mp-orders',this)"><span class="sb-icon">📋</span>My Orders</button>
+      <button class="sb-link" onclick="mPage('mp-profile',this)"><span class="sb-icon">👤</span>Profile</button>
+    </nav>
+    <div class="sb-user">
+      <div class="user-row">
+        <div class="avatar av-teal" id="m-av">T</div>
+        <div><div class="u-name" id="m-name">Merchant</div><div class="u-role" id="m-role">📦 Merchant</div></div>
+      </div>
+      <button class="btn-red" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
 
-        const CARRIERS = [
-          { id: "aramex", name: "Aramex Egypt", logo: "📦", base: 2.45, days: "3–5 days", badge: "Popular" },
-          { id: "dhl", name: "DHL Express", logo: "🟡", base: 3.20, days: "1–2 days", badge: "Fastest" },
-          { id: "fedex", name: "FedEx MENA", logo: "🟣", base: 2.80, days: "2–3 days", badge: null },
-          { id: "egyptair", name: "Egypt Air Cargo", logo: "✈️", base: 1.95, days: "4–6 days", badge: "Budget" },
-          { id: "ups", name: "UPS Middle East", logo: "🤎", base: 3.10, days: "2–4 days", badge: null },
-        ];
+  <!-- Main -->
+  <div class="main">
 
-        const CARGO_TYPES = ["General Cargo","Fragile Items","Hazardous Materials","Perishable Goods","Oversized Freight","Documents","Electronics","Automotive Parts"];
-        const EGYPT_CITIES = ["Cairo","Alexandria","Giza","Sharm El Sheikh","Hurghada","Luxor","Aswan","Port Said","Suez","Mansoura","Tanta","Ismailia"];
-        const INTL_CITIES = ["Dubai, UAE","Abu Dhabi, UAE","Riyadh, KSA","Jeddah, KSA","Kuwait City","Doha, Qatar","Amman, Jordan","Beirut, Lebanon","London, UK","Frankfurt, Germany","New York, USA","Istanbul, Turkey"];
-        const STATUS_STEPS = ["Order Placed","Picked Up","In Transit","Customs Clearance","Out for Delivery","Delivered"];
+    <!-- OVERVIEW -->
+    <div id="mp-home" class="dash-page active">
+      <div class="ph"><h2 id="m-welcome">Welcome back 👋</h2><p>Manage your shipments across Egypt and MENA</p></div>
+      <div style="background:linear-gradient(120deg,rgba(0,201,167,.15),rgba(0,201,167,.04));border:1px solid var(--teal);border-radius:16px;padding:24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:var(--fd);font-size:22px;font-weight:800;margin-bottom:4px">📦 Ready to ship something?</div>
+          <div style="font-size:14px;color:var(--gray)">Create a shipment in 5 easy steps and get matched with carriers instantly.</div>
+        </div>
+        <button class="btn btn-p" style="padding:14px 28px;font-size:15px" onclick="mPage('mp-ship',document.querySelectorAll('#v-merchant .sb-link')[1])">+ Create Shipment →</button>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-lbl">Active Shipments</div><div class="kpi-val">7</div><div class="kpi-sub">↑ 2 this week</div></div>
+        <div class="kpi"><div class="kpi-lbl">Delivered (Month)</div><div class="kpi-val">43</div><div class="kpi-sub">↑ 18% vs last month</div></div>
+        <div class="kpi warn"><div class="kpi-lbl">Pending Pickup</div><div class="kpi-val">3</div><div class="kpi-sub">Action needed</div></div>
+        <div class="kpi"><div class="kpi-lbl">Avg. Delivery</div><div class="kpi-val">2.4d</div><div class="kpi-sub">Domestic routes</div></div>
+      </div>
+      <div class="block">
+        <div class="block-title">🕐 Recent Shipments</div>
+        <div class="carrier-item"><div class="c-logo">EG</div><div class="c-info"><h4>Cairo → Alexandria</h4><p>Egypt Express Logistics • 12 kg • 2 boxes</p><div class="c-badges"><span class="badge badge-g">In Transit</span><span class="badge badge-t">Domestic</span></div></div><div class="c-price"><div class="price" id="p-rec1">EGP 320</div><div class="per">Est. delivery: Today</div></div></div>
+        <div class="carrier-item"><div class="c-logo">FL</div><div class="c-info"><h4>Cairo → Dubai</h4><p>Falcon Freight International • 45 kg</p><div class="c-badges"><span class="badge badge-g">Customs</span><span class="badge badge-g">Air Freight</span></div></div><div class="c-price"><div class="price" id="p-rec2">EGP 2,800</div><div class="per">Est. 3 days</div></div></div>
+      </div>
+    </div>
 
-        const css = `
-          @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
-          *{box-sizing:border-box;margin:0;padding:0}
-          body{background:#070E1A;font-family:'DM Sans',sans-serif;color:#EEF4FF;overflow-x:hidden}
-          input,select,textarea{font-family:'DM Sans',sans-serif}
-          ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#0A1628}::-webkit-scrollbar-thumb{background:#1A3357;border-radius:3px}
-          @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-          @keyframes spin{to{transform:rotate(360deg)}}
-          @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
-          .fade-up{animation:fadeUp .4s ease both}
-        `;
+    <!-- NEW SHIPMENT — 5-step wizard -->
+    <div id="mp-ship" class="dash-page">
+      <div class="ph"><h2>📦 New Shipment</h2><p>Complete all steps to find matched carriers for your route</p></div>
 
-        function Btn({ children, onClick, variant="primary", size="md", full, disabled, style, icon }) {
-          const [hov, setHov] = useState(false);
-          const sizes = { sm:{padding:"7px 14px",fontSize:13}, md:{padding:"11px 22px",fontSize:15}, lg:{padding:"14px 32px",fontSize:16} };
-          const variants = {
-            primary:{background:hov?C.tealDark:C.teal,color:C.navy},
-            secondary:{background:hov?"rgba(0,194,203,.12)":"rgba(0,194,203,.06)",color:C.teal,border:`1px solid ${C.border}`},
-            ghost:{background:hov?"rgba(255,255,255,.07)":"transparent",color:C.muted,border:`1px solid ${C.borderMuted}`},
-            danger:{background:hov?"#cc4141":C.danger,color:"#fff"},
-            google:{background:hov?"#f0f0f0":"#fff",color:"#222",border:"1px solid #ddd"},
-          };
-          return (
-            <button onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)} onClick={disabled?undefined:onClick}
-              style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,cursor:disabled?"not-allowed":"pointer",opacity:disabled?.5:1,transition:"all .2s",fontFamily:"'DM Sans',sans-serif",fontWeight:600,border:"none",borderRadius:size==="sm"?6:10,width:full?"100%":undefined,...sizes[size],...variants[variant],...style}}>
-              {icon&&<span>{icon}</span>}{children}
-            </button>
-          );
-        }
+      <!-- Step bar -->
+      <div class="step-bar">
+        <div class="step-tab active" id="st1">① Type</div>
+        <div class="step-tab pending" id="st2">② Sender</div>
+        <div class="step-tab pending" id="st3">③ Recipient</div>
+        <div class="step-tab pending" id="st4">④ Cargo</div>
+        <div class="step-tab pending" id="st5">⑤ Carriers</div>
+      </div>
 
-        function Input({ label, type="text", value, onChange, placeholder, required, error, options, rows }) {
-          const s = {width:"100%",background:"rgba(255,255,255,0.05)",border:`1px solid ${error?C.danger:C.borderMuted}`,borderRadius:10,padding:"12px 14px",color:C.white,fontSize:15,outline:"none",transition:"border-color .2s",fontFamily:"'DM Sans',sans-serif"};
-          return (
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {label&&<label style={{fontSize:13,color:C.muted,fontWeight:500}}>{label}{required&&<span style={{color:C.teal}}> *</span>}</label>}
-              {type==="select"?<select value={value} onChange={e=>onChange(e.target.value)} style={{...s,cursor:"pointer"}}><option value="">— Select —</option>{options.map(o=><option key={o} value={o} style={{background:C.navyMid}}>{o}</option>)}</select>
-              :type==="textarea"?<textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={rows||3} style={{...s,resize:"vertical"}}/>
-              :<input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={s}/>}
-              {error&&<span style={{color:C.danger,fontSize:12}}>{error}</span>}
-            </div>
-          );
-        }
+      <!-- Step 1: shipping type -->
+      <div id="s1" class="block">
+        <div class="currency-tag" id="ctag1">💱 Prices in EGP (Egypt)</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">Select Shipping Type</div>
+        <div class="stype-grid">
+          <div class="stype" id="stype-dom" onclick="pickShipType('domestic')">
+            <div class="stype-icon">🚚</div><h3>Domestic Shipping</h3>
+            <p>Within Egypt — fast delivery across all 27 governorates</p>
+          </div>
+          <div class="stype" id="stype-intl" onclick="pickShipType('international')">
+            <div class="stype-icon">🌐</div><h3>International Shipping</h3>
+            <p>Cross-border freight to 18+ countries in MENA and beyond</p>
+          </div>
+        </div>
+        <div id="intl-methods" style="display:none">
+          <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Choose Freight Method</div>
+          <div class="smethod-grid">
+            <div class="smethod" id="sm-air" onclick="pickMethod('air')"><div class="smethod-icon">✈️</div><span>Air Freight</span></div>
+            <div class="smethod" id="sm-sea" onclick="pickMethod('sea')"><div class="smethod-icon">🛥️</div><span>Sea Freight</span></div>
+            <div class="smethod" id="sm-land" onclick="pickMethod('land')"><div class="smethod-icon">🚛</div><span>Land / Road</span></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:20px">
+          <button class="btn btn-p" onclick="goStep(2)">Next: Sender Info →</button>
+        </div>
+      </div>
 
-        function Card({ children, style, onClick, hover }) {
-          const [hov,setHov]=useState(false);
-          return <div onMouseEnter={()=>hover&&setHov(true)} onMouseLeave={()=>setHov(false)} onClick={onClick} style={{background:hov?C.cardHover:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:24,transition:"all .2s",cursor:onClick?"pointer":undefined,...style}}>{children}</div>;
-        }
+      <!-- Step 2: sender -->
+      <div id="s2" class="block" style="display:none">
+        <div style="font-size:14px;font-weight:700;margin-bottom:18px">📤 Sender Information</div>
+        <div class="row2">
+          <div class="fg"><label>Sender Full Name</label><input id="sn-name" type="text" placeholder="Mohamed Ahmed"/></div>
+          <div class="fg"><label>Sender Phone</label><input id="sn-phone" type="tel" placeholder="+20 10 0000 0000"/></div>
+        </div>
+        <div class="fg"><label>Sender Address (Street, District)</label><input id="sn-addr" type="text" placeholder="12 Tahrir St., Downtown"/></div>
+        <div class="row2">
+          <div class="fg">
+            <label>Sender Governorate</label>
+            <select id="sn-gov">
+              <option value="">— Select Governorate —</option>
+              <option>Cairo / القاهرة</option><option>Giza / الجيزة</option><option>Alexandria / الإسكندرية</option>
+              <option>Port Said / بورسعيد</option><option>Suez / السويس</option><option>Dakahlia / الدقهلية</option>
+              <option>Sharqia / الشرقية</option><option>Qalyubia / القليوبية</option><option>Kafr El Sheikh / كفر الشيخ</option>
+              <option>Gharbia / الغربية</option><option>Monufia / المنوفية</option><option>Beheira / البحيرة</option>
+              <option>Ismailia / الإسماعيلية</option><option>Fayoum / الفيوم</option><option>Beni Suef / بني سويف</option>
+              <option>Minya / المنيا</option><option>Asyut / أسيوط</option><option>Sohag / سوهاج</option>
+              <option>Qena / قنا</option><option>Aswan / أسوان</option><option>Luxor / الأقصر</option>
+              <option>Red Sea / البحر الأحمر</option><option>New Valley / الوادي الجديد</option>
+              <option>Matrouh / مطروح</option><option>North Sinai / شمال سيناء</option><option>South Sinai / جنوب سيناء</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Cargo Type</label>
+            <select id="sn-ctype">
+              <option>General Goods</option><option>Electronics</option><option>Fragile Items</option>
+              <option>Perishable / Cold Chain</option><option>Documents</option><option>Oversized Cargo</option><option>Hazardous Materials</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px">
+          <button class="btn btn-o" style="padding:10px 18px;font-size:13px" onclick="goStep(1)">← Back</button>
+          <button class="btn btn-p" onclick="goStep(3)">Next: Recipient →</button>
+        </div>
+      </div>
 
-        function Badge({ children, color=C.teal }) {
-          return <span style={{background:`${color}22`,color,border:`1px solid ${color}44`,padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700,letterSpacing:.5}}>{children}</span>;
-        }
+      <!-- Step 3: recipient -->
+      <div id="s3" class="block" style="display:none">
+        <div style="font-size:14px;font-weight:700;margin-bottom:18px">📥 Recipient Information</div>
+        <div class="row2">
+          <div class="fg"><label>Recipient Full Name</label><input id="rc-name" type="text" placeholder="Sara Hassan"/></div>
+          <div class="fg"><label>Recipient Phone</label><input id="rc-phone" type="tel" placeholder="+20 12 0000 0000"/></div>
+        </div>
+        <div class="fg"><label>Recipient Address (Street, District)</label><input id="rc-addr" type="text" placeholder="45 Corniche Ave., Sidi Gaber"/></div>
+        <div class="row2">
+          <div class="fg">
+            <label>Recipient Governorate / Destination City</label>
+            <select id="rc-gov">
+              <option value="">— Select Destination —</option>
+              <optgroup label="🇪🇬 Egypt — Domestic">
+                <option>Cairo / القاهرة</option><option>Giza / الجيزة</option><option>Alexandria / الإسكندرية</option>
+                <option>Port Said / بورسعيد</option><option>Suez / السويس</option><option>Dakahlia / الدقهلية</option>
+                <option>Sharqia / الشرقية</option><option>Qalyubia / القليوبية</option><option>Kafr El Sheikh / كفر الشيخ</option>
+                <option>Gharbia / الغربية</option><option>Monufia / المنوفية</option><option>Beheira / البحيرة</option>
+                <option>Fayoum / الفيوم</option><option>Beni Suef / بني سويف</option><option>Minya / المنيا</option>
+                <option>Asyut / أسيوط</option><option>Sohag / سوهاج</option><option>Aswan / أسوان</option>
+                <option>Luxor / الأقصر</option><option>Red Sea / البحر الأحمر</option>
+                <option>North Sinai / شمال سيناء</option><option>Matrouh / مطروح</option>
+              </optgroup>
+              <optgroup label="🌐 International — MENA &amp; World">
+                <option>Dubai, UAE</option><option>Abu Dhabi, UAE</option>
+                <option>Riyadh, Saudi Arabia</option><option>Jeddah, Saudi Arabia</option>
+                <option>Beirut, Lebanon</option><option>Amman, Jordan</option>
+                <option>Kuwait City, Kuwait</option><option>Doha, Qatar</option>
+                <option>Muscat, Oman</option><option>Casablanca, Morocco</option>
+                <option>Tunis, Tunisia</option><option>Baghdad, Iraq</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="fg"><label>Delivery Notes (optional)</label><input id="rc-notes" type="text" placeholder="Floor 3, ring bell, etc."/></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px">
+          <button class="btn btn-o" style="padding:10px 18px;font-size:13px" onclick="goStep(2)">← Back</button>
+          <button class="btn btn-p" onclick="goStep(4)">Next: Cargo Details →</button>
+        </div>
+      </div>
 
-        function Spinner() {
-          return <div style={{width:20,height:20,border:`2.5px solid rgba(0,194,203,.3)`,borderTop:`2.5px solid ${C.teal}`,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>;
-        }
+      <!-- Step 4: carton details -->
+      <div id="s4" class="block" style="display:none">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px">📐 Carton & Cargo Details</div>
+        <p style="font-size:13px;color:var(--gray);margin-bottom:18px">Group cartons of the same size together. Add one row per size group.</p>
+        <div id="carton-rows"></div>
+        <button class="btn btn-ghost" style="margin-bottom:18px;font-size:13px" onclick="addCarton()">+ Add Carton Size Group</button>
+        <div class="totals-box">
+          <div class="totals-row"><span class="tot-lbl">Total Boxes</span><span class="tot-val" id="t-boxes">—</span></div>
+          <div class="totals-row"><span class="tot-lbl">Total Weight</span><span class="tot-val" id="t-weight">— kg</span></div>
+          <div class="totals-row"><span class="tot-lbl">Total Volume</span><span class="tot-val" id="t-vol">— m³</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <button class="btn btn-o" style="padding:10px 18px;font-size:13px" onclick="goStep(3)">← Back</button>
+          <button class="btn btn-p" onclick="goToCarriers()">Find Matching Carriers →</button>
+        </div>
+      </div>
 
-        function AuthScreen({ onLogin }) {
-          const [mode,setMode]=useState("login");
-          const [form,setForm]=useState({name:"",email:"",password:"",confirm:""});
-          const [errors,setErrors]=useState({});
-          const [loading,setLoading]=useState(false);
-          const [msg,setMsg]=useState("");
-          const set=(k,v)=>{setForm(p=>({...p,[k]:v}));setErrors(p=>({...p,[k]:""}));};
+      <!-- Step 5: matched carriers -->
+      <div id="s5" class="block" style="display:none">
+        <div class="currency-tag" id="ctag5">💱 Prices in EGP</div>
+        <div class="summary-box" id="ship-summary"></div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">🚚 Carriers Available for This Route</div>
+        <div id="matched-list"></div>
+        <div style="margin-top:14px">
+          <button class="btn btn-o" style="padding:10px 18px;font-size:13px" onclick="goStep(4)">← Edit Cargo</button>
+        </div>
+      </div>
+    </div>
 
-          function handleSubmit() {
-            const errs={};
-            if(mode==="register"&&!form.name.trim()) errs.name="Name is required";
-            if(!form.email.includes("@")) errs.email="Valid email required";
-            if(mode!=="forgot"&&form.password.length<6) errs.password="Min 6 characters";
-            if(mode==="register"&&form.password!==form.confirm) errs.confirm="Passwords don't match";
-            if(Object.keys(errs).length){setErrors(errs);return;}
-            setLoading(true);
-            setTimeout(()=>{
-              const users=DB.getUsers();
-              if(mode==="register"){
-                if(users[form.email]){setErrors({email:"Email already registered"});setLoading(false);return;}
-                const user={name:form.name,email:form.email,password:form.password,avatar:form.name.charAt(0).toUpperCase(),joined:nowStr()};
-                users[form.email]=user; DB.saveUsers(users); DB.saveSession(user); onLogin(user);
-              } else if(mode==="login"){
-                const user=users[form.email];
-                if(!user||user.password!==form.password){setErrors({password:"Invalid email or password"});setLoading(false);return;}
-                DB.saveSession(user); onLogin(user);
-              } else { setMsg("Reset link sent! (Demo: just register or login.)"); setLoading(false); }
-            },800);
-          }
+    <!-- FIND CARRIERS -->
+    <div id="mp-carriers" class="dash-page">
+      <div class="ph"><h2>🚚 Available Carriers</h2><p>All registered carriers on Smart Cargo — filter by your route</p></div>
+      <div class="currency-tag" id="ctag-fc">💱 Prices in EGP (Egypt)</div>
+      <div id="all-carrier-list"></div>
+    </div>
 
-          function googleLogin() {
-            setLoading(true);
-            setTimeout(()=>{
-              const users=DB.getUsers();
-              const email="demo.google@gmail.com";
-              if(!users[email]){
-                const u={name:"Google Demo User",email,password:"",avatar:"G",joined:nowStr(),provider:"google"};
-                users[email]=u; DB.saveUsers(users);
-              }
-              DB.saveSession(users[email]); onLogin(users[email]);
-            },800);
-          }
+    <!-- TRACK SHIPMENT -->
+    <div id="mp-track" class="dash-page">
+      <div class="ph"><h2>📍 Track Shipment</h2><p>Enter your tracking number for live status updates</p></div>
+      <div class="block">
+        <div class="row2">
+          <div class="fg"><label>Tracking Number</label><input id="track-inp" type="text" placeholder="e.g. SC-2025-00781"/></div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:16px"><button class="btn btn-p" onclick="doTrack()">Track →</button></div>
+        </div>
+      </div>
+      <div id="track-result" style="display:none">
+        <div class="block">
+          <div class="block-title">📦 SC-2025-00781 — Cairo → Alexandria</div>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:4px">Egypt Express Logistics • 12 kg • 2 boxes</p>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Estimated delivery: <strong style="color:var(--white)">Today, 6:00 PM</strong></p>
+          <div class="timeline">
+            <div class="tl-step done"><h4>Order Confirmed</h4><p>June 7, 9:00 AM — Cairo Warehouse</p></div>
+            <div class="tl-step done"><h4>Picked Up</h4><p>June 7, 11:30 AM — Driver: Ahmed M.</p></div>
+            <div class="tl-step done"><h4>Departed Warehouse</h4><p>June 7, 12:15 PM — En route to Alexandria</p></div>
+            <div class="tl-step now"><h4>In Transit</h4><p>Currently 45 km south of Alexandria</p></div>
+            <div class="tl-step"><h4>Out for Delivery</h4><p>Estimated 5:30 PM</p></div>
+            <div class="tl-step"><h4>Delivered</h4><p>Pending</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-          return (
-            <div style={{minHeight:"100vh",display:"flex",background:C.bg}}>
-              <div style={{flex:1,display:"flex",background:`linear-gradient(135deg,${C.navyMid},${C.navy})`,padding:60,flexDirection:"column",justifyContent:"space-between",borderRight:`1px solid ${C.border}`}}>
-                <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <div style={{width:40,height:40,borderRadius:10,background:C.teal,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🚢</div>
-                  <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:20}}>Smart<span style={{color:C.teal}}>Cargo</span></span>
-                </div>
-                <div>
-                  <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:42,fontWeight:800,lineHeight:1.2,marginBottom:20}}>Ship Smarter<br/><span style={{color:C.teal}}>Across MENA</span></h1>
-                  <p style={{color:C.muted,lineHeight:1.8,fontSize:16,marginBottom:40}}>Compare 150+ carriers, track shipments in real-time, and book securely — all from one intelligent platform.</p>
-                  {[["⚡","Instant rate comparison across all carriers"],["📍","Real-time GPS tracking from origin to delivery"],["🤖","AI assistant available 24/7 for logistics support"]].map(([icon,text])=>(
-                    <div key={text} style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:16}}><span style={{fontSize:20}}>{icon}</span><span style={{color:C.white,fontSize:15}}>{text}</span></div>
-                  ))}
-                </div>
-                <p style={{color:C.muted,fontSize:12}}>© 2026 Smart Cargo Shipping. All rights reserved.</p>
-              </div>
+    <!-- MY ORDERS -->
+    <div id="mp-orders" class="dash-page">
+      <div class="ph"><h2>📋 My Orders</h2><p>All shipment history</p></div>
+      <div class="carrier-item"><div class="c-logo" style="background:rgba(0,201,167,.2);color:var(--teal)">✓</div><div class="c-info"><h4>SC-2025-00780 — Cairo → Asyut</h4><p>Egypt Express Logistics • 8 kg • Delivered June 5</p><div class="c-badges"><span class="badge badge-t">Delivered</span></div></div><div class="c-price"><div class="price" id="p-ord1">EGP 210</div></div></div>
+      <div class="carrier-item"><div class="c-logo" style="background:rgba(245,166,35,.2);color:var(--gold)">⏳</div><div class="c-info"><h4>SC-2025-00781 — Cairo → Alexandria</h4><p>Egypt Express Logistics • 12 kg • In Transit</p><div class="c-badges"><span class="badge badge-g">In Transit</span></div></div><div class="c-price"><div class="price" id="p-ord2">EGP 320</div></div></div>
+      <div class="carrier-item"><div class="c-logo" style="background:rgba(245,166,35,.2);color:var(--gold)">✈</div><div class="c-info"><h4>SC-2025-00782 — Cairo → Dubai</h4><p>Falcon Freight Int'l • 45 kg • Air • In Customs</p><div class="c-badges"><span class="badge badge-g">Customs</span><span class="badge badge-t">Air</span></div></div><div class="c-price"><div class="price" id="p-ord3">EGP 2,800</div></div></div>
+    </div>
 
-              <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"40px 24px"}}>
-                <div className="fade-up" style={{width:"100%",maxWidth:420}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:40,justifyContent:"center"}}>
-                    <div style={{width:36,height:36,borderRadius:9,background:C.teal,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🚢</div>
-                    <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:18}}>Smart<span style={{color:C.teal}}>Cargo</span></span>
-                  </div>
-                  <h2 style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:26,marginBottom:8}}>{mode==="login"?"Welcome back":mode==="register"?"Create account":"Reset password"}</h2>
-                  <p style={{color:C.muted,marginBottom:28,fontSize:14}}>{mode==="login"?"Sign in to your Smart Cargo account":mode==="register"?"Join thousands of businesses shipping smarter":"Enter your email to receive a reset link"}</p>
+    <!-- PROFILE -->
+    <div id="mp-profile" class="dash-page">
+      <div class="ph"><h2>👤 My Profile</h2></div>
+      <div class="block">
+        <div class="row2">
+          <div class="fg"><label>Full Name</label><input id="p-pname" type="text"/></div>
+          <div class="fg"><label>Email</label><input id="p-email" type="text"/></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Business Sector</label><input id="p-sector" type="text"/></div>
+          <div class="fg"><label>Phone</label><input type="text" placeholder="+20 ..."/></div>
+        </div>
+        <div class="fg"><label>🪪 National ID (Verified)</label>
+          <div style="background:rgba(0,201,167,.07);border:1px solid var(--border);border-radius:10px;padding:13px;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--teal)">🪪 ID document verified at registration</div>
+        </div>
+        <button class="btn btn-p" onclick="notify('Profile saved ✅')">Save Changes</button>
+      </div>
+    </div>
 
-                  {mode!=="forgot"&&<>
-                    <Btn variant="google" full onClick={googleLogin} icon="🔵" style={{marginBottom:12,height:46}}>{loading?<Spinner/>:"Continue with Google"}</Btn>
-                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}><div style={{flex:1,height:1,background:C.borderMuted}}/><span style={{color:C.muted,fontSize:12}}>or with email</span><div style={{flex:1,height:1,background:C.borderMuted}}/></div>
-                  </>}
+  </div><!-- /main -->
+</div><!-- /dash-layout -->
+</div><!-- /v-merchant -->
 
-                  <div style={{display:"flex",flexDirection:"column",gap:16}}>
-                    {mode==="register"&&<Input label="Full Name" value={form.name} onChange={v=>set("name",v)} placeholder="Ahmed Hassan" required error={errors.name}/>}
-                    <Input label="Email Address" type="email" value={form.email} onChange={v=>set("email",v)} placeholder="you@example.com" required error={errors.email}/>
-                    {mode!=="forgot"&&<Input label="Password" type="password" value={form.password} onChange={v=>set("password",v)} placeholder="Min 6 characters" required error={errors.password}/>}
-                    {mode==="register"&&<Input label="Confirm Password" type="password" value={form.confirm} onChange={v=>set("confirm",v)} placeholder="Repeat your password" required error={errors.confirm}/>}
-                  </div>
+<!-- ══════════════════ CARRIER DASHBOARD ══════════════════ -->
+<div id="v-carrier" class="view">
+<div class="dash-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="logo">Smart<span>Cargo</span></div></div>
+    <nav class="sb-nav">
+      <button class="sb-link active" onclick="cPage('cp-home',this)"><span class="sb-icon">🏠</span>Overview</button>
+      <button class="sb-link" onclick="cPage('cp-msgs',this)"><span class="sb-icon">💬</span>Messages<span class="sb-badge" id="msg-dot">3</span></button>
+      <button class="sb-link" onclick="cPage('cp-compl',this)"><span class="sb-icon">⚠️</span>Complaints</button>
+      <button class="sb-link" onclick="cPage('cp-fleet',this)"><span class="sb-icon">🚛</span>Fleet</button>
+      <button class="sb-link" onclick="cPage('cp-ships',this)"><span class="sb-icon">📦</span>Shipments</button>
+      <button class="sb-link" onclick="cPage('cp-branches',this)"><span class="sb-icon">🗺️</span>Branches & Zones</button>
+      <button class="sb-link" onclick="cPage('cp-profile',this)"><span class="sb-icon">🏢</span>Company Profile</button>
+    </nav>
+    <div class="sb-user">
+      <div class="user-row">
+        <div class="avatar av-gold" id="c-av">E</div>
+        <div><div class="u-name" id="c-name">Carrier</div><div class="u-role">🚛 Shipping Co.</div></div>
+      </div>
+      <button class="btn-red" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
 
-                  {mode==="login"&&<div style={{textAlign:"right",marginTop:8}}><button onClick={()=>setMode("forgot")} style={{background:"none",border:"none",color:C.teal,cursor:"pointer",fontSize:13}}>Forgot password?</button></div>}
-                  {msg&&<div style={{background:"rgba(0,230,118,.1)",border:`1px solid ${C.success}`,borderRadius:10,padding:"12px 16px",marginTop:16,color:C.success,fontSize:14}}>{msg}</div>}
+  <div class="main">
 
-                  <Btn variant="primary" full onClick={handleSubmit} style={{marginTop:20,height:48}}>{loading?<Spinner/>:mode==="login"?"Sign In":mode==="register"?"Create Account":"Send Reset Link"}</Btn>
+    <!-- CARRIER OVERVIEW -->
+    <div id="cp-home" class="dash-page active">
+      <div class="ph"><h2>Operations Center 🚛</h2><p>Today's performance at a glance</p></div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-lbl">Shipments Today</div><div class="kpi-val">34</div><div class="kpi-sub">↑ 8% vs yesterday</div></div>
+        <div class="kpi"><div class="kpi-lbl">Trucks Active</div><div class="kpi-val">12</div><div class="kpi-sub">of 18 in fleet</div></div>
+        <div class="kpi warn"><div class="kpi-lbl">Pending Messages</div><div class="kpi-val">3</div><div class="kpi-sub">From merchants</div></div>
+        <div class="kpi danger"><div class="kpi-lbl">Open Complaints</div><div class="kpi-val">2</div><div class="kpi-sub">Needs response</div></div>
+        <div class="kpi"><div class="kpi-lbl">Trips Today</div><div class="kpi-val">61</div><div class="kpi-sub">Total vehicle trips</div></div>
+        <div class="kpi"><div class="kpi-lbl">Revenue Today</div><div class="kpi-val" id="c-rev">EGP 18.4K</div><div class="kpi-sub">↑ 12% vs avg</div></div>
+      </div>
+      <div class="block">
+        <div class="block-title">🚛 Fleet Quick View</div>
+        <div class="fleet-grid">
+          <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-001</div><div class="truck-trips">5</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+          <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-002</div><div class="truck-trips">4</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+          <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-003</div><div class="truck-trips">0</div><div class="truck-lbl">trips today</div><span class="truck-st st-off">Idle</span></div>
+          <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-004</div><div class="truck-trips">7</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        </div>
+      </div>
+    </div>
 
-                  <p style={{textAlign:"center",marginTop:20,fontSize:14,color:C.muted}}>
-                    {mode==="login"?<>Don't have an account? <button onClick={()=>setMode("register")} style={{background:"none",border:"none",color:C.teal,cursor:"pointer",fontWeight:600}}>Sign up free</button></>:<>Already have an account? <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:C.teal,cursor:"pointer",fontWeight:600}}>Sign in</button></>}
-                  </p>
-                  <div style={{background:"rgba(0,194,203,.07)",border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 16px",marginTop:20,fontSize:13,color:C.muted}}>
-                    💡 <strong style={{color:C.teal}}>Demo:</strong> Register a new account or use Google login to explore the full platform.
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        }
+    <!-- MESSAGES -->
+    <div id="cp-msgs" class="dash-page">
+      <div class="ph"><h2>💬 Merchant Messages</h2><p>Incoming booking requests and inquiries</p></div>
+      <div id="msgs-list">
+        <div class="msg-item unread"><div class="msg-av">🏪</div><div class="msg-body"><div class="msg-from">Al-Nour Electronics — Cairo</div><div class="msg-text">Need urgent pickup of 15 boxes for Alexandria delivery by tomorrow morning. Please confirm availability.</div></div><div class="msg-time">2h ago</div></div>
+        <div class="msg-item unread"><div class="msg-av">🧴</div><div class="msg-body"><div class="msg-from">Pharma Plus — Heliopolis</div><div class="msg-text">Cold chain shipment to Aswan — can you confirm temperature control for 80 kg? Quote needed.</div></div><div class="msg-time">4h ago</div></div>
+        <div class="msg-item unread"><div class="msg-av">👗</div><div class="msg-body"><div class="msg-from">Fashion Hub — Alexandria</div><div class="msg-text">International air freight to Dubai: 12 parcels, 30 kg. Do you handle customs documentation?</div></div><div class="msg-time">Yesterday</div></div>
+        <div class="msg-item"><div class="msg-av">🔧</div><div class="msg-body"><div class="msg-from">TechParts Egypt — 6th October</div><div class="msg-text">Thank you for last week's delivery — very smooth! Sending another batch next Monday.</div></div><div class="msg-time">2 days ago</div></div>
+      </div>
+      <div class="block" style="margin-top:18px">
+        <div class="block-title">📝 Quick Reply</div>
+        <div class="fg"><label>Message</label><textarea rows="3" placeholder="Type your reply to the selected merchant..."></textarea></div>
+        <button class="btn btn-p" onclick="notify('Reply sent ✅')">Send Reply</button>
+      </div>
+    </div>
 
-        // ... [بقية الكود الخاص بك يوضع هنا بالكامل بنفس الطريقة] ...
-        // ملاحظة: قمت بوضع جزء صغير للاختصار، لكنك ستنسخ الكود بالكامل داخل وسم <script>
-        // سأقوم بإتمام الكود في الملف الذي ستنشئه أنت
-        
-        // [أكمل بقية الدوال والوظائف هنا بنفس الترتيب]
-        
-        function App() {
-          const [user,setUser]=useState(null);
-          const [loading,setLoading]=useState(true);
-          useEffect(()=>{ setUser(DB.getSession()); setLoading(false); },[]);
-          if(loading) return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
-          return (<><style>{css}</style>{user?<Dashboard user={user} onLogout={()=>setUser(null)}/>:<AuthScreen onLogin={u=>setUser(u)}/>}</>);
-        }
+    <!-- COMPLAINTS -->
+    <div id="cp-compl" class="dash-page">
+      <div class="ph"><h2>⚠️ Complaints</h2><p>Manage and resolve customer complaints</p></div>
+      <div class="cmp-item"><div class="cmp-hdr"><span class="cmp-id">#CMP-2025-041</span><span class="status s-open">Open</span></div><div class="cmp-title">Delayed delivery — package arrived 2 days late</div><div class="cmp-from">Merchant: Al-Nour Electronics • Submitted: June 7</div><div style="margin-top:10px"><button class="btn btn-p" style="padding:8px 14px;font-size:13px" onclick="notify('Marked as In Progress')">Respond</button></div></div>
+      <div class="cmp-item"><div class="cmp-hdr"><span class="cmp-id">#CMP-2025-039</span><span class="status s-prog">In Progress</span></div><div class="cmp-title">Package arrived damaged — outer box crushed</div><div class="cmp-from">Merchant: Pharma Plus • Submitted: June 5</div><div style="margin-top:10px"><button class="btn btn-p" style="padding:8px 14px;font-size:13px" onclick="notify('Complaint resolved ✅')">Mark Resolved</button></div></div>
+      <div class="cmp-item"><div class="cmp-hdr"><span class="cmp-id">#CMP-2025-035</span><span class="status s-done">Resolved</span></div><div class="cmp-title">Wrong address assigned to shipment</div><div class="cmp-from">Merchant: Fashion Hub • Resolved June 3</div></div>
+    </div>
 
-        // --- Render ---
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+    <!-- FLEET -->
+    <div id="cp-fleet" class="dash-page">
+      <div class="ph"><h2>🚛 Fleet Management</h2><p>Vehicle activity and trip counts</p></div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-lbl">Total Trucks</div><div class="kpi-val">18</div></div>
+        <div class="kpi"><div class="kpi-lbl">Active Now</div><div class="kpi-val">12</div><div class="kpi-sub" style="color:var(--teal)">On route</div></div>
+        <div class="kpi warn"><div class="kpi-lbl">Idle</div><div class="kpi-val">6</div></div>
+        <div class="kpi"><div class="kpi-lbl">Total Trips Today</div><div class="kpi-val">61</div><div class="kpi-sub">↑ vs 54 yesterday</div></div>
+      </div>
+      <div class="fleet-grid">
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-001</div><div class="truck-trips">5</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-002</div><div class="truck-trips">4</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-003</div><div class="truck-trips">0</div><div class="truck-lbl">trips today</div><span class="truck-st st-off">Idle</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-004</div><div class="truck-trips">7</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-005</div><div class="truck-trips">6</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-006</div><div class="truck-trips">3</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-007</div><div class="truck-trips">0</div><div class="truck-lbl">trips today</div><span class="truck-st st-off">Idle</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-008</div><div class="truck-trips">8</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-009</div><div class="truck-trips">5</div><div class="truck-lbl">trips today</div><span class="truck-st st-on">Active</span></div>
+        <div class="truck-card"><div class="truck-icon">🚛</div><div class="truck-id">TRK-010</div><div class="truck-trips">0</div><div class="truck-lbl">trips today</div><span class="truck-st st-off">Idle</span></div>
+      </div>
+    </div>
 
-    </script>
+    <!-- SHIPMENTS -->
+    <div id="cp-ships" class="dash-page">
+      <div class="ph"><h2>📦 Today's Shipments</h2><p>All orders assigned today</p></div>
+      <div class="carrier-item"><div class="c-logo" style="background:rgba(0,201,167,.2);color:var(--teal)">✓</div><div class="c-info"><h4>SC-2025-00780 — Cairo → Asyut</h4><p>Al-Nour Electronics • 8 kg • Delivered 10:30 AM</p><div class="c-badges"><span class="badge badge-t">Delivered</span></div></div><div class="c-price"><div class="price">EGP 210</div></div></div>
+      <div class="carrier-item"><div class="c-logo" style="background:rgba(245,166,35,.2);color:var(--gold)">⏳</div><div class="c-info"><h4>SC-2025-00781 — Cairo → Alexandria</h4><p>Pharma Plus • 12 kg • In Transit</p><div class="c-badges"><span class="badge badge-g">In Transit</span></div></div><div class="c-price"><div class="price">EGP 320</div></div></div>
+      <div class="carrier-item"><div class="c-logo" style="background:rgba(255,90,95,.2);color:var(--red)">!</div><div class="c-info"><h4>SC-2025-00783 — Cairo → Port Said</h4><p>Fashion Hub • 5 kg • Pending Pickup</p><div class="c-badges"><span class="badge badge-r">Pending</span></div></div><div class="c-price"><div class="price">EGP 175</div></div></div>
+    </div>
+
+    <!-- BRANCHES & ZONES -->
+    <div id="cp-branches" class="dash-page">
+      <div class="ph"><h2>🗺️ Branches & Service Zones</h2><p>Add your office/branch locations using a Google Maps link</p></div>
+
+      <!-- Add branch form -->
+      <div class="block">
+        <div class="block-title">➕ Add New Branch</div>
+        <div class="row2">
+          <div class="fg"><label>Branch Name</label><input id="br-name" type="text" placeholder="e.g. Cairo Main Hub"/></div>
+          <div class="fg">
+            <label>Governorate / City</label>
+            <select id="br-gov">
+              <option value="">— Select —</option>
+              <option>Cairo</option><option>Giza</option><option>Alexandria</option><option>Port Said</option>
+              <option>Suez</option><option>Asyut</option><option>Sohag</option><option>Aswan</option>
+              <option>Luxor</option><option>Minya</option><option>Red Sea</option><option>Matrouh</option>
+              <option>North Sinai</option><option>South Sinai</option>
+              <option>Dubai, UAE</option><option>Riyadh, KSA</option><option>Jeddah, KSA</option>
+              <option>Beirut, Lebanon</option><option>Amman, Jordan</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg">
+          <label>📍 Google Maps Location Link</label>
+          <input id="br-map" type="url" placeholder="https://maps.google.com/?q=... — paste your branch location link"/>
+          <div style="font-size:11px;color:var(--gray);margin-top:5px">How to get the link: Open Google Maps → Search your location → Click Share → Copy link → Paste here</div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Branch Phone</label><input id="br-phone" type="tel" placeholder="+20 ..."/></div>
+          <div class="fg"><label>Working Hours</label><input id="br-hours" type="text" placeholder="Sat–Thu, 8AM–6PM"/></div>
+        </div>
+        <div class="fg">
+          <label>Services at this branch</label>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0"><input type="checkbox" id="sv-pu" checked/> Pickup</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0"><input type="checkbox" id="sv-do" checked/> Drop-off</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0"><input type="checkbox" id="sv-in"/> International</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0"><input type="checkbox" id="sv-cc"/> Cold Chain</label>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="addBranch()">Add Branch</button>
+      </div>
+
+      <!-- Existing branches -->
+      <div class="block">
+        <div class="block-title">🏢 Registered Branches</div>
+        <div id="branch-list">
+          <div class="branch-item"><div class="branch-em">🏢</div><div class="branch-info"><div style="display:flex;justify-content:space-between;align-items:center"><h4>Cairo Main Hub</h4><a href="https://maps.google.com" target="_blank" class="map-link">📍 View on Map</a></div><p>Cairo • +20 2 2345 6789 • Sat–Thu 8AM–6PM</p><div class="c-badges" style="margin-top:7px"><span class="badge badge-t">Pickup</span><span class="badge badge-t">Drop-off</span><span class="badge badge-g">International</span></div></div></div>
+          <div class="branch-item"><div class="branch-em">🏢</div><div class="branch-info"><div style="display:flex;justify-content:space-between;align-items:center"><h4>Alexandria Branch</h4><a href="https://maps.google.com" target="_blank" class="map-link">📍 View on Map</a></div><p>Alexandria • +20 3 4567 8901 • Sun–Thu 9AM–5PM</p><div class="c-badges" style="margin-top:7px"><span class="badge badge-t">Pickup</span><span class="badge badge-t">Drop-off</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Coverage zones -->
+      <div class="block">
+        <div class="block-title">📦 Delivery Coverage Zones</div>
+        <p style="font-size:13px;color:var(--gray);margin-bottom:14px">Select all governorates and cities you deliver to — merchants filter carriers by destination</p>
+        <div class="zone-grid" id="zone-list"></div>
+        <button class="btn btn-p" style="margin-top:16px" onclick="notify('Coverage zones saved ✅')">Save Coverage Zones</button>
+      </div>
+    </div>
+
+    <!-- COMPANY PROFILE -->
+    <div id="cp-profile" class="dash-page">
+      <div class="ph"><h2>🏢 Company Profile</h2></div>
+      <div class="block">
+        <div class="row2">
+          <div class="fg"><label>Company Name</label><input id="cp-cname" type="text"/></div>
+          <div class="fg"><label>Registration Number</label><input type="text" placeholder="EG-XXXXX"/></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Primary Location</label><input type="text" placeholder="Cairo, Egypt"/></div>
+          <div class="fg"><label>Fleet Size</label><input type="number" placeholder="18"/></div>
+        </div>
+        <div class="fg"><label>Business Activity / Specialization</label><input type="text" placeholder="Domestic & International Freight, Cold Chain..."/></div>
+        <div class="fg"><label>🪪 Company License (Verified)</label>
+          <div style="background:rgba(0,201,167,.07);border:1px solid var(--border);border-radius:10px;padding:13px;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--teal)">🪪 Business license verified at registration</div>
+        </div>
+        <button class="btn btn-p" onclick="notify('Profile saved ✅')">Save Profile</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /dash-layout -->
+</div><!-- /v-carrier -->
+
+<!-- ══════════════════ LOGIN MODAL ══════════════════ -->
+<div id="m-login" class="overlay hidden">
+  <div class="modal">
+    <button class="close-x" onclick="closeModals()">✕</button>
+    <h2>Welcome to Smart Cargo</h2>
+    <p class="modal-sub">Choose how you'll use <span>Smart Cargo</span></p>
+    <div class="tabs">
+      <div class="tab active" onclick="setLoginRole('merchant',this)">🏪 I want to ship</div>
+      <div class="tab" onclick="setLoginRole('carrier',this)">🚛 I'm a carrier</div>
+    </div>
+    <div class="fg"><label>Email</label><input id="l-email" type="email" placeholder="you@company.com"/></div>
+    <div class="fg"><label>Password</label><input id="l-pass" type="password" placeholder="••••••••"/></div>
+    <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Sign In →</button>
+    <div class="divider"></div>
+    <p style="text-align:center;font-size:13px;color:var(--gray)">New here? <span style="color:var(--teal);cursor:pointer;font-weight:600" onclick="closeModals();openModal('m-register')">Create account</span></p>
+  </div>
+</div>
+
+<!-- ══════════════════ REGISTER MODAL ══════════════════ -->
+<div id="m-register" class="overlay hidden">
+  <div class="modal wide">
+    <button class="close-x" onclick="closeModals()">✕</button>
+    <h2>Create Account</h2>
+    <p class="modal-sub">Join <span>Smart Cargo</span> — Egypt & MENA shipping platform</p>
+
+    <div style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px">I am a...</div>
+    <div class="role-grid">
+      <div class="role-card sel" id="r-merchant" onclick="setRegRole('merchant')">
+        <div class="rc-icon">🏪</div>
+        <div class="rc-name">Merchant / Business</div>
+        <div class="rc-desc">I want to ship goods</div>
+      </div>
+      <div class="role-card" id="r-carrier" onclick="setRegRole('carrier')">
+        <div class="rc-icon">🚛</div>
+        <div class="rc-name">Shipping Company</div>
+        <div class="rc-desc">I provide shipping services</div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="fg"><label>Full Name</label><input id="r-name" type="text" placeholder="Your full name"/></div>
+      <div class="fg"><label>Email</label><input id="r-email" type="email" placeholder="you@company.com"/></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Phone</label><input id="r-phone" type="tel" placeholder="+20 ..."/></div>
+      <div class="fg"><label>Password</label><input id="r-pass" type="password" placeholder="••••••••"/></div>
+    </div>
+
+    <div class="fg">
+      <label>🏭 Business Sector & Activity Type</label>
+      <select id="r-sector">
+        <option value="">— Select your sector —</option>
+        <optgroup label="Trade & Commerce">
+          <option>Wholesale Trade</option><option>Retail & E-commerce</option><option>Import / Export</option>
+        </optgroup>
+        <optgroup label="Industry">
+          <option>Manufacturing</option><option>Food & Beverages</option><option>Pharmaceuticals</option>
+          <option>Textiles & Fashion</option><option>Electronics</option><option>Construction Materials</option>
+        </optgroup>
+        <optgroup label="Logistics Services">
+          <option>Domestic Freight</option><option>International Freight</option><option>Last-Mile Delivery</option>
+          <option>Cold Chain Logistics</option>
+        </optgroup>
+        <optgroup label="Other">
+          <option>Agriculture</option><option>Auto Parts</option><option>Other</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="fg">
+      <label>🪪 Upload National ID / Business License</label>
+      <div class="upload-box" id="upload-wrap">
+        <input type="file" accept="image/*,.pdf" onchange="handleFile(event)"/>
+        <div class="upload-icon">🪪</div>
+        <p>Tap to upload your ID card or business license</p>
+        <p style="font-size:11px;margin-top:4px;color:var(--gray)">JPG, PNG or PDF • Required for verification</p>
+        <div class="upload-ok" id="upload-ok"></div>
+      </div>
+    </div>
+
+    <div class="fg" style="display:flex;align-items:flex-start;gap:10px">
+      <input type="checkbox" id="r-agree" style="width:16px;height:16px;margin-top:2px;flex-shrink:0"/>
+      <label for="r-agree" style="font-size:12px;color:var(--gray);text-transform:none;letter-spacing:0;cursor:pointer">I agree to Smart Cargo's Terms of Service and Privacy Policy</label>
+    </div>
+
+    <button class="btn btn-p" style="width:100%" onclick="doRegister()">Create Account →</button>
+  </div>
+</div>
+
+<!-- ══════════════════ NOTIFICATION ══════════════════ -->
+<div id="notif" class="notif-bar"></div>
+
+<!-- ══════════════════ JAVASCRIPT ══════════════════ -->
+<script>
+/* ─── STATE ─── */
+let loginRole='merchant', regRole='merchant';
+let shipType='', shipMethod='';
+let cartonCount=0;
+let user={};
+let currency={sym:'EGP',name:'Egypt',rate:1};
+
+const EG_GOVS=['Cairo','Giza','Alexandria','Port Said','Suez','Dakahlia','Sharqia','Qalyubia','Kafr El Sheikh','Gharbia','Monufia','Beheira','Ismailia','Fayoum','Beni Suef','Minya','Asyut','Sohag','Qena','Aswan','Luxor','Red Sea','New Valley','Matrouh','North Sinai','South Sinai'];
+const INTL=['Dubai, UAE','Abu Dhabi, UAE','Riyadh, Saudi Arabia','Jeddah, Saudi Arabia','Beirut, Lebanon','Amman, Jordan','Kuwait City, Kuwait','Doha, Qatar','Muscat, Oman','Casablanca, Morocco','Tunis, Tunisia'];
+
+const CARRIERS=[
+  {code:'EG',name:'Egypt Express Logistics',zones:['Cairo','Giza','Alexandria','Dakahlia','Sharqia','Qalyubia'],type:'domestic',price:180,per:'shipment',tags:[]},
+  {code:'MK',name:'Marakez Shipping Co.',zones:['Cairo','Giza','Asyut','Sohag','Aswan','Luxor','Minya'],type:'domestic',price:240,per:'shipment',tags:['Cold Chain']},
+  {code:'FL',name:'Falcon Freight International',zones:['Cairo','Giza','Dubai, UAE','Riyadh, Saudi Arabia','Beirut, Lebanon','Amman, Jordan'],type:'international',price:1200,per:'10 kg',tags:['Air']},
+  {code:'NL',name:'Nile Cargo Services',zones:['Alexandria','Port Said','Suez','Dubai, UAE','Casablanca, Morocco'],type:'international',price:3500,per:'container',tags:['Sea']},
+  {code:'DX',name:'Delta Xpress',zones:['Cairo','Giza','Gharbia','Monufia','Beheira','Kafr El Sheikh'],type:'domestic',price:130,per:'shipment',tags:['Economy']},
+  {code:'SP',name:'Sinai Post & Cargo',zones:['North Sinai','South Sinai','Suez','Red Sea'],type:'domestic',price:200,per:'shipment',tags:[]},
+  {code:'GS',name:'Gulf Star Shipping',zones:['Cairo','Riyadh, Saudi Arabia','Jeddah, Saudi Arabia','Doha, Qatar','Kuwait City, Kuwait'],type:'international',price:950,per:'10 kg',tags:['Air','Express']},
+];
+
+/* ─── CURRENCY ─── */
+async function detectCurrency(){
+  try{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),2500);
+    const r=await fetch('https://ipapi.co/json/',{signal:ctrl.signal});
+    clearTimeout(timer);
+    const d=await r.json();
+    const map={'EG':{sym:'EGP',name:'Egypt',rate:1},'AE':{sym:'AED',name:'UAE',rate:0.12},'SA':{sym:'SAR',name:'Saudi Arabia',rate:0.15},'US':{sym:'USD',name:'USA',rate:0.032},'GB':{sym:'GBP',name:'UK',rate:0.026},'JO':{sym:'JOD',name:'Jordan',rate:0.023},'KW':{sym:'KWD',name:'Kuwait',rate:0.0098},'QA':{sym:'QAR',name:'Qatar',rate:0.116},'MA':{sym:'MAD',name:'Morocco',rate:0.33}};
+    if(d&&d.country_code&&map[d.country_code])currency=map[d.country_code];
+  }catch(e){/* offline or blocked — default to EGP */}
+  refreshCurrency();
+}
+function fmt(egp){
+  const v=egp*currency.rate;
+  const decimals=['USD','GBP','JOD','KWD'].includes(currency.sym)?2:0;
+  return currency.sym+' '+v.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+}
+function refreshCurrency(){
+  const tag=`💱 Prices in ${currency.sym} (${currency.name})`;
+  ['ctag1','ctag5','ctag-fc'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=tag;});
+  const pairs=[['p-rec1',320],['p-rec2',2800],['p-ord1',210],['p-ord2',320],['p-ord3',2800]];
+  pairs.forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=fmt(v);});
+  const rev=document.getElementById('c-rev');if(rev)rev.textContent=fmt(18400);
+}
+
+/* ─── VIEWS ─── */
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModals(){document.querySelectorAll('.overlay').forEach(o=>o.classList.add('hidden'));}
+function scrollTo(sel){document.querySelector(sel)?.scrollIntoView({behavior:'smooth'});}
+
+/* ─── NOTIFICATION ─── */
+function notify(msg){
+  const n=document.getElementById('notif');n.textContent=msg;n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2800);
+}
+
+/* ─── AUTH ─── */
+function setLoginRole(role,el){
+  loginRole=role;
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function setRegRole(role){
+  regRole=role;
+  document.getElementById('r-merchant').classList.toggle('sel',role==='merchant');
+  document.getElementById('r-carrier').classList.toggle('sel',role==='carrier');
+}
+function handleFile(e){
+  const f=e.target.files[0];
+  if(f){document.getElementById('upload-ok').textContent='✅ '+f.name;document.getElementById('upload-wrap').style.borderColor='var(--teal)';}
+}
+function doLogin(){
+  const email=document.getElementById('l-email').value;
+  const pass=document.getElementById('l-pass').value;
+  if(!email||!pass){notify('Please fill in all fields');return;}
+  user={name:email.split('@')[0],email,role:loginRole,sector:'Business'};
+  closeModals();launch(loginRole);
+}
+function doRegister(){
+  const name=document.getElementById('r-name').value;
+  const email=document.getElementById('r-email').value;
+  const sector=document.getElementById('r-sector').value;
+  const agree=document.getElementById('r-agree').checked;
+  if(!name||!email){notify('Please enter your name and email');return;}
+  if(!sector){notify('Please select your business sector');return;}
+  if(!agree){notify('Please agree to the Terms of Service');return;}
+  user={name,email,role:regRole,sector};
+  closeModals();launch(regRole);
+}
+function launch(role){
+  if(role==='merchant'){
+    document.getElementById('m-av').textContent=user.name[0].toUpperCase();
+    document.getElementById('m-name').textContent=user.name;
+    document.getElementById('m-role').textContent='📦 '+(user.sector||'Merchant');
+    document.getElementById('m-welcome').textContent='Welcome to Smart Cargo, '+user.name+' 👋';
+    document.getElementById('p-pname').value=user.name;
+    document.getElementById('p-email').value=user.email;
+    document.getElementById('p-sector').value=user.sector||'';
+    showView('v-merchant');
+    initCartons();renderAllCarriers();
+  }else{
+    document.getElementById('c-av').textContent=user.name[0].toUpperCase();
+    document.getElementById('c-name').textContent=user.name;
+    document.getElementById('cp-cname').value=user.name;
+    showView('v-carrier');
+    buildZoneList();
+  }
+  refreshCurrency();
+  notify('Welcome to Smart Cargo! 🚚');
+}
+function doLogout(){user={};showView('v-land');notify('Signed out');}
+
+/* ─── MERCHANT NAV ─── */
+function mPage(id,el){
+  document.querySelectorAll('#v-merchant .dash-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#v-merchant .sb-link').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(id==='mp-ship')resetSteps();
+}
+
+/* ─── CARRIER NAV ─── */
+function cPage(id,el){
+  document.querySelectorAll('#v-carrier .dash-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#v-carrier .sb-link').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(id==='cp-msgs')document.getElementById('msg-dot').style.display='none';
+}
+
+/* ─── SHIPPING TYPE ─── */
+function pickShipType(t){
+  shipType=t;
+  document.getElementById('stype-dom').classList.toggle('sel',t==='domestic');
+  document.getElementById('stype-intl').classList.toggle('sel',t==='international');
+  document.getElementById('intl-methods').style.display=t==='international'?'block':'none';
+}
+function pickMethod(m){
+  shipMethod=m;
+  ['air','sea','land'].forEach(x=>document.getElementById('sm-'+x).classList.remove('sel'));
+  document.getElementById('sm-'+m).classList.add('sel');
+}
+
+/* ─── STEP WIZARD ─── */
+function resetSteps(){
+  for(let i=1;i<=5;i++){
+    const s=document.getElementById('s'+i);if(s)s.style.display=i===1?'block':'none';
+    styleStep(i,i===1?'active':'pending');
+  }
+}
+function goStep(n){
+  for(let i=1;i<=5;i++){
+    const s=document.getElementById('s'+i);if(s)s.style.display=i===n?'block':'none';
+    styleStep(i,i===n?'active':i<n?'done':'pending');
+  }
+}
+function styleStep(i,state){
+  const t=document.getElementById('st'+i);if(!t)return;
+  t.className='step-tab '+state;
+}
+
+/* ─── CARTONS ─── */
+function initCartons(){cartonCount=0;document.getElementById('carton-rows').innerHTML='';addCarton();}
+function addCarton(){
+  cartonCount++;
+  const id=cartonCount;
+  const html=`
+  <div class="carton-row" id="cr-${id}">
+    <div class="carton-row-hdr">
+      <span class="carton-lbl">📦 Carton Group #${id}</span>
+      ${id>1?`<button class="btn-remove" onclick="removeCarton(${id})">Remove</button>`:''}
+    </div>
+    <div class="row4" style="margin-bottom:10px">
+      <div class="fg" style="margin:0"><label>Length (cm)</label><input type="number" id="cl-${id}" placeholder="60" min="1" oninput="calcTotals()"/></div>
+      <div class="fg" style="margin:0"><label>Width (cm)</label><input type="number" id="cw-${id}" placeholder="40" min="1" oninput="calcTotals()"/></div>
+      <div class="fg" style="margin:0"><label>Height (cm)</label><input type="number" id="ch-${id}" placeholder="30" min="1" oninput="calcTotals()"/></div>
+      <div class="fg" style="margin:0"><label>Qty (boxes)</label><input type="number" id="cq-${id}" placeholder="1" min="1" oninput="calcTotals()"/></div>
+    </div>
+    <div class="row2">
+      <div class="fg" style="margin:0"><label>Weight per box (kg)</label><input type="number" id="cwt-${id}" placeholder="5.0" step="0.1" min="0.1" oninput="calcTotals()"/></div>
+      <div class="fg" style="margin:0"><label>Contents / Description</label><input type="text" id="cc-${id}" placeholder="e.g. Clothing, Electronics"/></div>
+    </div>
+  </div>`;
+  document.getElementById('carton-rows').insertAdjacentHTML('beforeend',html);
+}
+function removeCarton(id){document.getElementById('cr-'+id)?.remove();calcTotals();}
+function calcTotals(){
+  let boxes=0,wt=0,vol=0;
+  for(let i=1;i<=cartonCount;i++){
+    const el=document.getElementById('cr-'+i);if(!el)continue;
+    const l=parseFloat(document.getElementById('cl-'+i)?.value)||0;
+    const w=parseFloat(document.getElementById('cw-'+i)?.value)||0;
+    const h=parseFloat(document.getElementById('ch-'+i)?.value)||0;
+    const q=parseInt(document.getElementById('cq-'+i)?.value)||0;
+    const weight=parseFloat(document.getElementById('cwt-'+i)?.value)||0;
+    boxes+=q;wt+=q*weight;vol+=q*(l/100)*(w/100)*(h/100);
+  }
+  document.getElementById('t-boxes').textContent=boxes||'—';
+  document.getElementById('t-weight').textContent=wt?wt.toFixed(2)+' kg':'— kg';
+  document.getElementById('t-vol').textContent=vol?vol.toFixed(4)+' m³':'— m³';
+}
+
+/* ─── FIND CARRIERS ─── */
+function goToCarriers(){
+  const snGov=document.getElementById('sn-gov')?.value||'';
+  const rcGov=document.getElementById('rc-gov')?.value||'';
+  if(!snGov||!rcGov){notify('Please select sender and recipient locations first');goStep(snGov?3:2);return;}
+  goStep(5);buildSummary();renderMatchedCarriers(snGov,rcGov);
+}
+function buildSummary(){
+  const sn=document.getElementById('sn-name')?.value||'—';
+  const sg=document.getElementById('sn-gov')?.value||'—';
+  const rn=document.getElementById('rc-name')?.value||'—';
+  const rg=document.getElementById('rc-gov')?.value||'—';
+  const rp=document.getElementById('rc-phone')?.value||'—';
+  const ra=document.getElementById('rc-addr')?.value||'—';
+  const boxes=document.getElementById('t-boxes')?.textContent||'—';
+  const weight=document.getElementById('t-weight')?.textContent||'—';
+  const method=shipType==='international'?('International ('+(shipMethod||'-')+')'):'Domestic';
+  document.getElementById('ship-summary').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div><strong>From:</strong> ${sn}</div><div><strong>Origin:</strong> ${sg}</div>
+      <div><strong>To:</strong> ${rn}</div><div><strong>Destination:</strong> ${rg}</div>
+      <div><strong>Recipient Phone:</strong> ${rp}</div><div><strong>Delivery Address:</strong> ${ra}</div>
+      <div><strong>Method:</strong> ${method}</div><div><strong>Cargo Type:</strong> ${document.getElementById('sn-ctype')?.value||'—'}</div>
+      <div><strong>Total Boxes:</strong> ${boxes}</div><div><strong>Total Weight:</strong> ${weight}</div>
+    </div>`;
+}
+function isIntlDest(gov){return !EG_GOVS.some(g=>gov.toLowerCase().includes(g.toLowerCase()));}
+function renderMatchedCarriers(snGov,rcGov){
+  const intl=isIntlDest(rcGov);
+  const rBase=rcGov.split('/')[0].trim().split(',')[0].trim().toLowerCase();
+  const matched=CARRIERS.filter(c=>{
+    if(intl&&c.type==='domestic')return false;
+    if(!intl&&c.type==='international')return false;
+    return c.zones.some(z=>z.toLowerCase().includes(rBase)||rBase.includes(z.toLowerCase().split(',')[0].trim()));
+  });
+  const list=document.getElementById('matched-list');
+  if(!matched.length){
+    list.innerHTML=`<div style="text-align:center;padding:40px;color:var(--gray)"><div style="font-size:42px;margin-bottom:12px">😔</div><p style="font-size:15px">No carriers registered for this route yet.</p><p style="font-size:12px;margin-top:6px">More carriers join daily — check back soon.</p></div>`;
+    return;
+  }
+  list.innerHTML=matched.map(c=>`
+    <div class="carrier-item">
+      <div class="c-logo">${c.code}</div>
+      <div class="c-info">
+        <h4>${c.name}</h4>
+        <p>📍 Covers: ${c.zones.slice(0,3).join(', ')}${c.zones.length>3?'...':''}</p>
+        <div class="c-badges">
+          <span class="badge badge-t">${c.type==='domestic'?'Domestic':'International'}</span>
+          ${c.tags.map(t=>`<span class="badge badge-g">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="c-price">
+        <div class="price">${fmt(c.price)}</div>
+        <div class="per">/ ${c.per}</div>
+        <button class="btn-sm" style="margin-top:7px" onclick="bookCarrier('${c.name}')">Book Now</button>
+      </div>
+    </div>`).join('');
+  refreshCurrency();
+}
+function bookCarrier(name){
+  const num='SC-2025-'+Math.floor(10000+Math.random()*90000);
+  notify(`✅ Request sent to ${name}! Tracking: ${num}`);
+}
+
+/* ─── ALL CARRIERS PAGE ─── */
+function renderAllCarriers(){
+  const list=document.getElementById('all-carrier-list');if(!list)return;
+  list.innerHTML=CARRIERS.map(c=>`
+    <div class="carrier-item">
+      <div class="c-logo">${c.code}</div>
+      <div class="c-info">
+        <h4>${c.name}</h4>
+        <p>📍 ${c.zones.slice(0,4).join(' • ')}</p>
+        <div class="c-badges">
+          <span class="badge badge-t">${c.type==='domestic'?'Domestic':'International'}</span>
+          ${c.tags.map(t=>`<span class="badge badge-g">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="c-price">
+        <div class="price">${fmt(c.price)}</div>
+        <div class="per">/ ${c.per}</div>
+        <button class="btn-sm" style="margin-top:7px" onclick="bookCarrier('${c.name}')">Book Now</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ─── TRACK ─── */
+function doTrack(){
+  const v=document.getElementById('track-inp').value;
+  if(!v){notify('Please enter a tracking number');return;}
+  document.getElementById('track-result').style.display='block';
+}
+
+/* ─── CARRIER BRANCHES ─── */
+function addBranch(){
+  const name=document.getElementById('br-name').value;
+  const gov=document.getElementById('br-gov').value;
+  const mapUrl=document.getElementById('br-map').value;
+  const phone=document.getElementById('br-phone').value;
+  const hours=document.getElementById('br-hours').value;
+  if(!name||!gov){notify('Please enter branch name and location');return;}
+  if(mapUrl&&!mapUrl.startsWith('http')){notify('Please enter a valid Google Maps URL');return;}
+  const tags=[];
+  if(document.getElementById('sv-pu').checked)tags.push({label:'Pickup',cls:'badge-t'});
+  if(document.getElementById('sv-do').checked)tags.push({label:'Drop-off',cls:'badge-t'});
+  if(document.getElementById('sv-in').checked)tags.push({label:'International',cls:'badge-g'});
+  if(document.getElementById('sv-cc').checked)tags.push({label:'Cold Chain',cls:'badge-g'});
+  const html=`
+  <div class="branch-item">
+    <div class="branch-em">🏢</div>
+    <div class="branch-info">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h4>${name}</h4>
+        ${mapUrl?`<a href="${mapUrl}" target="_blank" class="map-link">📍 View on Map</a>`:'<span style="font-size:11px;color:var(--gray)">No map link</span>'}
+      </div>
+      <p>${gov}${phone?' • '+phone:''}${hours?' • '+hours:''}</p>
+      <div class="c-badges" style="margin-top:7px">${tags.map(t=>`<span class="badge ${t.cls}">${t.label}</span>`).join('')}</div>
+    </div>
+  </div>`;
+  document.getElementById('branch-list').insertAdjacentHTML('beforeend',html);
+  ['br-name','br-map','br-phone','br-hours'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('br-gov').value='';
+  notify('Branch added ✅');
+}
+function buildZoneList(){
+  const all=[...EG_GOVS,...INTL];
+  const pre=['Cairo','Giza','Alexandria'];
+  const el=document.getElementById('zone-list');if(!el)return;
+  el.innerHTML=all.map(g=>`<label class="zone-lbl"><input type="checkbox" ${pre.includes(g)?'checked':''}/> ${g}</label>`).join('');
+}
+
+/* ─── INIT ─── */
+console.log('Smart Cargo v2 loaded ✓');
+try{ resetSteps(); }catch(e){ console.warn('resetSteps skipped',e); }
+try{ detectCurrency(); }catch(e){ console.warn('currency skipped',e); }
+try{
+  document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModals();}));
+}catch(e){}
+</script>
 </body>
 </html>
